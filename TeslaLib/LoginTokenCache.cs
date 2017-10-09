@@ -17,6 +17,8 @@ namespace TeslaLib
         private static volatile bool haveReadCacheFile = false;
         private static Object cacheLock = new Object();
 
+        public static readonly bool OSSupportsTokenCache = Environment.OSVersion.Platform != PlatformID.MacOSX;
+
         private static void ReadCacheFile()
         {
             Tokens.Clear();
