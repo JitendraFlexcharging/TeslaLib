@@ -17,7 +17,8 @@ namespace TeslaLib
         private static volatile bool haveReadCacheFile = false;
         private static Object cacheLock = new Object();
 
-        public static readonly bool OSSupportsTokenCache = Environment.OSVersion.Platform != PlatformID.MacOSX;
+        // On iOS, Envrionment.OSVersion.Platform returns Unix.
+        public static readonly bool OSSupportsTokenCache = Environment.OSVersion.Platform != PlatformID.Unix;
 
         private static void ReadCacheFile()
         {
@@ -42,7 +43,7 @@ namespace TeslaLib
         private static void WriteCacheFile()
         {
             // Note: On an Android device, we either don't have a legal path or we simply can't write anything.
-            // Presumably the same behavior will happen with an IPhone.  Can we use isolated storage on Mono?
+            // The same behavior happens with an IPhone (UnauthorizedAccessException).  Can we use isolated storage on Xamarin?
             try
             {
                 using (StreamWriter writer = File.CreateText(CacheFileName))
@@ -64,7 +65,7 @@ namespace TeslaLib
         {
             lock (cacheLock)
             {
-                if (!haveReadCacheFile)
+                if (!haveReadCacheFile && OSSupportsTokenCache)
                 {
                     ReadCacheFile();
                     haveReadCacheFile = true;
@@ -81,7 +82,8 @@ namespace TeslaLib
                 if (DateTime.Now + ExpirationTimeWindow >= expirationTime)
                 {
                     Tokens.Remove(emailAddress);
-                    WriteCacheFile();
+                    if (OSSupportsTokenCache)
+                        WriteCacheFile();
                     token = null;
                 }
                 return token;
@@ -93,7 +95,8 @@ namespace TeslaLib
             lock (cacheLock)
             {
                 Tokens[emailAddress] = token;
-                WriteCacheFile();
+                if (OSSupportsTokenCache)
+                    WriteCacheFile();
             }
         }
 

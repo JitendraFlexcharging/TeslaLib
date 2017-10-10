@@ -42,12 +42,6 @@ namespace TeslaLib
 
         public void LoginUsingCache(string password)
         {
-            if (!LoginTokenCache.OSSupportsTokenCache)
-            {
-                Login(password);
-                return;
-            }
-
             LoginToken token = LoginTokenCache.GetToken(Email);
             if (token != null)
             {
