@@ -20,25 +20,25 @@ namespace TeslaLib.Models
         /// Degrees C inside the car
         /// </summary>
         [JsonProperty(PropertyName = "inside_temp")]
-        public double? InsideTemperature { get; set; }
+        public float? InsideTemperature { get; set; }
 
         /// <summary>
         /// Degrees C outside of the car
         /// </summary>
         [JsonProperty(PropertyName = "outside_temp")]
-        public double? OutsideTemperature { get; set; }
+        public float? OutsideTemperature { get; set; }
 
         /// <summary>
         /// Degrees C of the driver temperature setpoint
         /// </summary>
         [JsonProperty(PropertyName = "driver_temp_setting")]
-        public double DriverTemperatureSetting { get; set; }
+        public float DriverTemperatureSetting { get; set; }
 
         /// <summary>
         /// Degrees C of the passenger temperature setpoint
         /// </summary>
         [JsonProperty(PropertyName = "passenger_temp_setting")]
-        public double PassengerTemperatureSetting { get; set; }
+        public float PassengerTemperatureSetting { get; set; }
 
         /// <summary>
         /// Not clear what this is.  Automated vent control?
@@ -77,11 +77,11 @@ namespace TeslaLib.Models
 
         // Not clear what this is.  Max and min air conditioning setting values?
         [JsonProperty(PropertyName = "min_avail_temp")]
-        public double? MinAvailTemperature { get; set; }
+        public float? MinAvailTemperature { get; set; }
 
         // Not clear what this is.  Max and min air conditioning setting values?
         [JsonProperty(PropertyName = "max_avail_temp")]
-        public double? MaxAvailTemperature { get; set; }
+        public float? MaxAvailTemperature { get; set; }
 
         /// <summary>
         /// Seat heater setting for left seat, 0 - 3
