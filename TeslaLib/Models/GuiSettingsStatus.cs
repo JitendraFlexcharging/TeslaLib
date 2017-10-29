@@ -37,7 +37,7 @@ namespace TeslaLib.Models
 
     public enum TemperatureUnits
     {
-         [EnumMember(Value = "F")]
+        [EnumMember(Value = "F")]
         FAHRENHEIT,
 
         [EnumMember(Value = "C")]

@@ -44,13 +44,13 @@ namespace TeslaLib.Models
         /// Not clear what this is.  Automated vent control?
         /// </summary>
         [JsonProperty(PropertyName = "left_temp_direction")]
-        public int LeftTemperatureDirection { get; set; }
+        public int? LeftTemperatureDirection { get; set; }
 
         /// <summary>
         /// Not clear what this is.  Automated vent control?
         /// </summary>
         [JsonProperty(PropertyName = "right_temp_direction")]
-        public int RightTemperatureDirection { get; set; }
+        public int? RightTemperatureDirection { get; set; }
 
         [JsonProperty(PropertyName = "is_auto_conditioning_on")]
         public bool? IsAutoAirConditioning { get; set; }

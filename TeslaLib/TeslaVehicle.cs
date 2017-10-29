@@ -84,9 +84,18 @@ namespace TeslaLib
 
             var response = Client.Get(request);
             var json = JObject.Parse(response.Content)["response"];
-            var data = JsonConvert.DeserializeObject<ClimateStateStatus>(json.ToString());
 
-            return data;
+            try
+            {
+                var data = JsonConvert.DeserializeObject<ClimateStateStatus>(json.ToString());
+
+                return data;
+            }
+            catch(Exception e)
+            {
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
         }
 
         public DriveStateStatus LoadDriveStateStatus()
@@ -120,9 +129,18 @@ namespace TeslaLib
 
             var response = Client.Get(request);
             var json = JObject.Parse(response.Content)["response"];
-            var data = JsonConvert.DeserializeObject<VehicleStateStatus>(json.ToString());
 
-            return data;
+            try
+            {
+                var data = JsonConvert.DeserializeObject<VehicleStateStatus>(json.ToString());
+
+                return data;
+            }
+            catch(Exception e)
+            {
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
         }
 
         #endregion
