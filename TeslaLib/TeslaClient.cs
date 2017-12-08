@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using TeslaLib.Models;
 using TeslaLib.Converters;
+using System.Security;
 
 namespace TeslaLib
 {
@@ -75,6 +76,16 @@ namespace TeslaLib
                 password = password
             });
             var response = loginClient.Post<LoginToken>(request);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                throw new SecurityException($"Logging in failed for account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?");
+            }
+            if (response.ResponseStatus == ResponseStatus.Error || response.ResponseStatus == ResponseStatus.TimedOut ||
+                response.ResponseStatus == ResponseStatus.Aborted)
+            {
+                throw response.ErrorException;
+            }
             var token = response.Data;
             return token;
         }
