@@ -138,7 +138,10 @@ namespace TeslaLib.Models
         [EnumMember(Value = "Charcoal21")]
         CHARCOAL_21,
 
-        CHARCOAL_PERFORMANCE_21
+        CHARCOAL_PERFORMANCE_21,
+
+        [EnumMember(Value = "AeroTurbine19")]
+        AeroTurbine19,
     }
 
     public enum RoofType
@@ -160,6 +163,9 @@ namespace TeslaLib.Models
 
         [EnumMember(Value = "Sport")]
         SPORT,
+
+        [EnumMember(Value = "P1")]
+        P1,
 
         [EnumMember(Value = "P2")]
         P2
