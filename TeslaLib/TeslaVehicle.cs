@@ -153,7 +153,18 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Post(request);
-            var json = JObject.Parse(response.Content)["response"];
+            JObject jobject = null;
+            try
+            {
+                jobject = JObject.Parse(response.Content);
+            }
+            catch(JsonReaderException e)
+            {
+                // Every once in a while, WakeUp will throw a JsonReaderException.  Let's see why.
+                e.Data["Content"] = response.Content;
+                throw;
+            }
+            var json = jobject["response"];
             var data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
             if (data == null)
                 return VehicleState.Asleep;
