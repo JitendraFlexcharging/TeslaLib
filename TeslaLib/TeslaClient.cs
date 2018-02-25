@@ -43,6 +43,9 @@ namespace TeslaLib
 
         public void LoginUsingCache(string password)
         {
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
+
             LoginToken token = LoginTokenCache.GetToken(Email);
             if (token != null)
             {
@@ -58,6 +61,9 @@ namespace TeslaLib
 
         public void Login(string password)
         {
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
+
             LoginToken token = GetLoginToken(password);
             SetToken(token);
         }
