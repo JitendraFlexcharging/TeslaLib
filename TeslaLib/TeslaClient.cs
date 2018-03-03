@@ -114,9 +114,21 @@ namespace TeslaLib
             var response = Client.Get(request);
 
             var json = JObject.Parse(response.Content)["response"];
-            var data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(json.ToString());
+            var jsonString = json.ToString();
+            if (jsonString.Length == 0)
+                throw new FormatException("Response was empty.");
 
-            data.ForEach(x => x.Client = Client);
+            List<TeslaVehicle> data = null;
+            try
+            {
+                data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(jsonString);
+                data.ForEach(x => x.Client = Client);
+            }
+            catch(Exception e)
+            {
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
 
             return data;
         }
