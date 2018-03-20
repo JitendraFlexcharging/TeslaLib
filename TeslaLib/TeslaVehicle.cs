@@ -71,10 +71,24 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            var json = JObject.Parse(response.Content)["response"];
-            var data = JsonConvert.DeserializeObject<ChargeStateStatus>(json.ToString());
 
-            return data;
+            if (response.Content.Length == 0)
+                throw new FormatException("Response was empty.");
+
+            try
+            {
+                var json = JObject.Parse(response.Content)["response"];
+                var data = JsonConvert.DeserializeObject<ChargeStateStatus>(json.ToString());
+                return data;
+            }
+            catch(Exception e)
+            {
+                if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
+                    throw new TeslaServerException();
+
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
         }
 
         public ClimateStateStatus LoadClimateStateStatus()
@@ -83,16 +97,21 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            var json = JObject.Parse(response.Content)["response"];
+
+            if (response.Content.Length == 0)
+                throw new FormatException("Response was empty.");
 
             try
             {
+                var json = JObject.Parse(response.Content)["response"];
                 var data = JsonConvert.DeserializeObject<ClimateStateStatus>(json.ToString());
-
                 return data;
             }
             catch(Exception e)
             {
+                if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
+                    throw new TeslaServerException();
+
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
@@ -104,10 +123,24 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            var json = JObject.Parse(response.Content)["response"];
-            var data = JsonConvert.DeserializeObject<DriveStateStatus>(json.ToString());
 
-            return data;
+            if (response.Content.Length == 0)
+                throw new FormatException("Response was empty.");
+
+            try
+            {
+                var json = JObject.Parse(response.Content)["response"];
+                var data = JsonConvert.DeserializeObject<DriveStateStatus>(json.ToString());
+                return data;
+            }
+            catch (Exception e)
+            {
+                if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
+                    throw new TeslaServerException();
+
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
         }
 
         public GuiSettingsStatus LoadGuiStateStatus()
@@ -116,6 +149,10 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
+
+            if (response.Content.Length == 0)
+                throw new FormatException("Response was empty.");
+
             var json = JObject.Parse(response.Content)["response"];
             var data = JsonConvert.DeserializeObject<GuiSettingsStatus>(json.ToString());
 
@@ -128,16 +165,21 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            var json = JObject.Parse(response.Content)["response"];
+
+            if (response.Content.Length == 0)
+                throw new FormatException("Response was empty.");
 
             try
             {
+                var json = JObject.Parse(response.Content)["response"];
                 var data = JsonConvert.DeserializeObject<VehicleStateStatus>(json.ToString());
-
                 return data;
             }
             catch(Exception e)
             {
+                if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
+                    throw new TeslaServerException();
+
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
@@ -160,8 +202,11 @@ namespace TeslaLib
             }
             catch(JsonReaderException e)
             {
+                if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
+                    throw new TeslaServerException();
+
                 // Every once in a while, WakeUp will throw a JsonReaderException.  Let's see why.
-                e.Data["Content"] = response.Content;
+                e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
             var json = jobject["response"];

@@ -22,6 +22,8 @@ namespace TeslaLib
         public static readonly string BASE_URL = "https://owner-api.teslamotors.com/api/1";
         public static readonly string VERSION = "1.1.0";
 
+        internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
+
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
         {
             Email = email;
@@ -113,19 +115,21 @@ namespace TeslaLib
             var request = new RestRequest("vehicles");
             var response = Client.Get(request);
 
-            var json = JObject.Parse(response.Content)["response"];
-            var jsonString = json.ToString();
-            if (jsonString.Length == 0)
+            if (response.Content.Length == 0)
                 throw new FormatException("Response was empty.");
 
             List<TeslaVehicle> data = null;
             try
             {
-                data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(jsonString);
+                var json = JObject.Parse(response.Content)["response"];
+                data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(json.ToString());
                 data.ForEach(x => x.Client = Client);
             }
             catch(Exception e)
             {
+                if (response.Content.Contains(InternalServerErrorMessage))
+                    throw new TeslaServerException();
+                Console.WriteLine("Bad content: " + response.Content);
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
