@@ -165,6 +165,25 @@ namespace TeslaLib.Models
                             break;
                     }
 
+
+                    string value1 = option.Substring(3, 1);
+                    switch (option.Substring(0, 3))
+                    {
+                        case "CDM":
+                            if (value1 == "0")
+                                HasCHAdeMOAdapter = false;
+                            else if (value1 == "1")
+                                HasCHAdeMOAdapter = true;
+                            else
+                                Console.Error.WriteLine($"Unrecognized option {option}.  A new CHAdeMO adapter type?");
+                            break;
+
+                        case "TRA":
+                            // I've seen TRA1 from a Model X.  Could be a third row seating option.  Might be TR + A1,
+                            // maybe.
+                            break;
+                    }
+
                     string value2 = option.Substring(2, 2);
 
                     switch (option.Substring(0, 2))
@@ -252,7 +271,10 @@ namespace TeslaLib.Models
                             InteriorDecor = Extensions.ToEnum<InteriorDecor>(value2);
                             break;
                         case "TR":
-                            HasThirdRowSeating = int.Parse(value2) > 0;
+                            // Tolerate "TRA1"
+                            int seatConfiguration = 0;
+                            if (Int32.TryParse(value2, out seatConfiguration))
+                                HasThirdRowSeating = seatConfiguration > 0;
                             break;
                         case "SU":
                             HasAirSuspension = int.Parse(value2) > 0;
@@ -305,19 +327,6 @@ namespace TeslaLib.Models
                             Color = Extensions.ToEnum<TeslaColor>(value3);
                             break;
                         case "I":
-                            break;
-                    }
-
-                    string value1 = option.Substring(3, 1);
-                    switch (option.Substring(0, 3))
-                    {
-                        case "CDM":
-                            if (value1 == "0")
-                                HasCHAdeMOAdapter = false;
-                            else if (value1 == "1")
-                                HasCHAdeMOAdapter = true;
-                            else
-                                Console.Error.WriteLine($"Unrecognized option {option}.  A new CHAdeMO adapter type?");
                             break;
                     }
                 }
