@@ -57,7 +57,7 @@ namespace TeslaLib.Models
         public PanoramicRoofState PanoramicRoofState { get; set; }
 
         [JsonProperty(PropertyName = "sun_roof_percent_open")]
-        public int PanoramicRoofPercentOpen { get; set; }
+        public int? PanoramicRoofPercentOpen { get; set; }
 
         [JsonProperty(PropertyName = "dark_rims")]
         public bool HasDarkRims { get; set; }
