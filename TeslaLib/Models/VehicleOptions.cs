@@ -101,7 +101,7 @@ namespace TeslaLib.Models
             // Another Model S as of January 2018.
             // MS04,RENA,AU01,BC0B,BP00,BR01,BS00,BTX4,CDM0,CH00,PPSB,CW00,DA02,DCF0,DRLH,DSH7,DV4W,FG02,HP00,IDHM,IX01,LP01,ME02,MI00,PA00,PF00,PI01,PK00,PS01,PX00,QNET,RFP2,SC01,SP00,SR01,SU01,TM00,TP03,TR00,UTAW,WT19,WTX1,X001,X003,X007,X011,X013,X021,X025,X027,X028,X031,X037,X040,YF00,COUS
 
-            // A not yet delivered Model 3:
+            // A not yet delivered Model 3 (Seen March 31, 2018):
             // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
             List<string> options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -208,6 +208,7 @@ namespace TeslaLib.Models
                             IsPerformance = int.Parse(value2) > 0;
                             break;
                         case "BT":
+                            // A Model 3 can have BT37.  Is that 70 kWh?  37 kW?
                             if (value2[0] == 'X')
                             {
                                 switch (value2[1])
@@ -290,7 +291,7 @@ namespace TeslaLib.Models
                             break;
                         case "SC":
                             int superchargingOption = int.Parse(value2);
-                            HasSuperCharging = superchargingOption > 0;
+                            HasSuperCharging = superchargingOption > 0;  // Note: One web site claims SC00 may mean you have supercharging...
                             if (superchargingOption == 5)
                                 FreeSupercharging = true;
                             else if (superchargingOption == 4)
@@ -306,7 +307,7 @@ namespace TeslaLib.Models
                                 HasAudioUpgrade = audioUpgrade > 0;
                             else if (value2 == "3P")
                             {
-                                // ?  This came from a first-run Model 3 which probably had all the upgrades...
+                                HasAudioUpgrade = true;
                             }
                             break;
                         case "CH":
@@ -322,6 +323,7 @@ namespace TeslaLib.Models
                             HasParcelShelf = int.Parse(value2) > 0;
                             break;
                         case "AD":
+                            // AD15 is J1772.
                             break;
                         case "PX":
                             IsPerformancePlus = int.Parse(value2) > 0;
