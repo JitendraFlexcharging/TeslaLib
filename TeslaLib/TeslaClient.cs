@@ -34,21 +34,12 @@ namespace TeslaLib
             Client.Authenticator = new TeslaAuthenticator();
         }
 
-        public class TeslaAuthenticator : RestSharp.Authenticators.IAuthenticator
-        {
-            public string Token { get; set; }
-            public void Authenticate(IRestClient client, IRestRequest request)
-            {
-                request.AddHeader("Authorization", $"Bearer {Token}");
-            }
-        }
-
         public void LoginUsingCache(string password)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
 
-            LoginToken token = LoginTokenCache.GetToken(Email);
+            var token = LoginTokenCache.GetToken(Email);
             if (token != null)
             {
                 SetToken(token);
@@ -73,8 +64,11 @@ namespace TeslaLib
         private LoginToken GetLoginToken(string password)
         {
             var loginClient = new RestClient("https://owner-api.teslamotors.com/oauth");
-            var request = new RestRequest("token");
-            request.RequestFormat = DataFormat.Json;
+            var request = new RestRequest("token")
+            {
+                RequestFormat = DataFormat.Json
+            };
+
             request.AddBody(new
             {
                 grant_type = "password",
@@ -105,10 +99,7 @@ namespace TeslaLib
             AccessToken = token.AccessToken;
         }
 
-        public void ClearLoginTokenCache()
-        {
-            LoginTokenCache.ClearCache();
-        }
+        public void ClearLoginTokenCache() => LoginTokenCache.ClearCache();
 
         public List<TeslaVehicle> LoadVehicles()
         {

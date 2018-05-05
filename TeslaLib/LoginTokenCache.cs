@@ -13,34 +13,35 @@ namespace TeslaLib
         // Make sure the token from the cache is valid for this long.
         private static readonly TimeSpan ExpirationTimeWindow = TimeSpan.FromDays(1);
 
-        private static Dictionary<String, LoginToken> Tokens = new Dictionary<String, LoginToken>();
+        private static readonly Dictionary<String, LoginToken> Tokens = new Dictionary<String, LoginToken>();
         private static volatile bool haveReadCacheFile = false;
         private static readonly Object cacheLock = new Object();
 
-        // On iOS, Envrionment.OSVersion.Platform returns Unix.
+        // On iOS, Environment.OSVersion.Platform returns Unix.
         public static readonly bool OSSupportsTokenCache = Environment.OSVersion.Platform != PlatformID.Unix;
 
         private static void ReadCacheFile()
         {
             Tokens.Clear();
             if (!File.Exists(CacheFileName))
+            {
                 return;
-
+            }
+			
             try
             {
                 // The file format here doesn't fit well with Newtonsoft's JSON.NET, unless we serialize a List of Tuples of Email, LoginTokens.
                 // We can't change the LoginToken type - that's Tesla's specification.  And we need to correctly handle
                 // files longer than 1K in data (about 6 users).  Yes, this code allocates a lot after these changes.
-                JsonSerializer serializer = new JsonSerializer();
-                using (StreamReader reader = File.OpenText(CacheFileName))
+                var serializer = new JsonSerializer();
+                using (var reader = File.OpenText(CacheFileName))
                 {
-                    String emailAddress = null;
                     while (!reader.EndOfStream)
                     {
-                        emailAddress = reader.ReadLine();
+                        var emailAddress = reader.ReadLine();
                         String serializedToken = reader.ReadLine();
-                        JsonReader jsonReader = new JsonTextReader(new StringReader(serializedToken));
-                        LoginToken token = serializer.Deserialize<LoginToken>(jsonReader);
+                        var jsonReader = new JsonTextReader(new StringReader(serializedToken));
+                        var token = serializer.Deserialize<LoginToken>(jsonReader);
                         Tokens.Add(emailAddress, token);
                     }
                 }
@@ -58,9 +59,10 @@ namespace TeslaLib
             // The same behavior happens with an IPhone (UnauthorizedAccessException).  Can we use isolated storage on Xamarin?
             try
             {
-                using (StreamWriter writer = File.CreateText(CacheFileName))
+                using (var writer = File.CreateText(CacheFileName))
                 {
-                    JsonSerializer serializer = new JsonSerializer();
+                    var serializer = new JsonSerializer();
+
                     foreach (var pair in Tokens)
                     {
                         writer.WriteLine(pair.Key);
@@ -83,14 +85,14 @@ namespace TeslaLib
                     haveReadCacheFile = true;
                 }
 
-                LoginToken token;
-                if (!Tokens.TryGetValue(emailAddress, out token))
+                if (!Tokens.TryGetValue(emailAddress, out LoginToken token))
                 {
                     return null;
                 }
 
                 // Ensure the LoginToken is still valid.
-                DateTime expirationTime = token.CreatedAt.ToLocalTime() + UnixTimeConverter.FromUnixTimeSpan(token.ExpiresIn);
+                var expirationTime = token.CreatedAt.ToLocalTime() + UnixTimeConverter.FromUnixTimeSpan(token.ExpiresIn);
+
                 if (DateTime.Now + ExpirationTimeWindow >= expirationTime)
                 {
                     Tokens.Remove(emailAddress);

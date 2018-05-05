@@ -18,12 +18,6 @@ namespace TeslaLib.Models
     //  "is_preconditioning":false,"smart_preconditioning":false,"is_auto_conditioning_on":null,"timestamp":1518691620545}}
     public class ClimateStateStatus
     {
-
-        public ClimateStateStatus()
-        {
-
-        }
-
         /// <summary>
         /// Degrees C inside the car
         /// </summary>

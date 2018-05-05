@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TeslaLib.Converters
 {
@@ -15,10 +11,6 @@ namespace TeslaLib.Converters
             return time;
         }
 
-        public static TimeSpan FromUnixTimeSpan(long unixTimeSpan)
-        {
-            TimeSpan timeSpan = TimeSpan.FromSeconds(unixTimeSpan);
-            return timeSpan;
-        }
+        public static TimeSpan FromUnixTimeSpan(long unixTimeSpan) => TimeSpan.FromSeconds(unixTimeSpan);
     }
 }

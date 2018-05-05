@@ -1,19 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 
 namespace TeslaLib.Models
 {
     public class VehicleOptions
     {
-
-        public VehicleOptions()
-        {
-
-        }
-
         public VehicleOptions(string optionCodes)
         {
             ParseOptionCodes(optionCodes);
@@ -50,9 +41,9 @@ namespace TeslaLib.Models
         public bool HasHomeLink { get; set; }
 
         public bool HasSatelliteRadio { get; set; }
-        
+
         public bool HasPerformanceExterior { get; set; }
-        
+
         public bool HasPerformancePowertrain { get; set; }
 
         public bool HasThirdRowSeating { get; set; }
@@ -104,7 +95,7 @@ namespace TeslaLib.Models
             // A not yet delivered Model 3 (Seen March 31, 2018):
             // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
-            List<string> options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
             {
@@ -240,36 +231,36 @@ namespace TeslaLib.Models
                             }
                             break;
                         case "RF":
-                            if (value2 == "BC")
-                            {
-                                RoofType = Models.RoofType.COLORED;
-                            }
-                            else if (value2 == "PO")
-                            {
-                                RoofType = Models.RoofType.NONE;
-                            }
-                            else if (value2 == "BK")
-                            {
-                                RoofType = Models.RoofType.BLACK;
-                            }
+						    switch (value2)
+							{
+                                case "BC":
+                                    RoofType = RoofType.COLORED;
+									break;
+                                case "PO":
+                                    RoofType = RoofType.NONE;
+									break;
+                                case "BK":
+                                    RoofType = RoofType.BLACK;
+									break;
+						    }
                             break;
                         case "WT":
-                            if (value2 == "19")
+                            switch (value2)
                             {
-                                WheelType = Models.WheelType.BASE_19;
+                                case "19":
+                                    WheelType = WheelType.BASE_19;
+                                    break;
+                                case "21":
+                                    WheelType = WheelType.SILVER_21;
+                                    break;
+                                case "SP":
+                                    WheelType = WheelType.CHARCOAL_21;
+                                    break;
+                                case "SG":
+                                    WheelType = WheelType.CHARCOAL_PERFORMANCE_21;
+                                    break;
                             }
-                            else if (value2 == "21")
-                            {
-                                WheelType = Models.WheelType.SILVER_21;
-                            }
-                            else if (value2 == "SP")
-                            {
-                                WheelType = Models.WheelType.CHARCOAL_21;
-                            }
-                            else if (value2 == "SG")
-                            {
-                                WheelType = Models.WheelType.CHARCOAL_PERFORMANCE_21;
-                            }
+
                             break;
                         case "ID":
                             InteriorDecor = Extensions.ToEnum<InteriorDecor>(value2);
@@ -354,113 +345,5 @@ namespace TeslaLib.Models
                 }
             }
         }
-    }
-
-    public enum Region
-    {
-        [EnumMember(Value = "NA")]
-        USA,
-
-        [EnumMember(Value = "NC")]
-        CANADA
-    }
-
-    public enum TrimLevel
-    {
-        [EnumMember(Value = "00")]
-        STANDARD,
-        
-        //[EnumMember(Value = "01")]
-        //PERFORMANCE,
-
-        [EnumMember(Value = "02")]
-        SIGNATURE_PERFORMANCE
-    }
-
-    // Model S paint codes:  https://teslamotorsclub.com/tmc/threads/model-s-paint-codes.25297/
-    public enum TeslaColor
-    {
-        [EnumMember(Value = "BSB")]
-        BLACK,
-
-        [EnumMember(Value = "BCW")]
-        WHITE,
-
-        [EnumMember(Value = "MSS")]
-        SILVER,  // Metallic silver
-
-        [EnumMember(Value = "MTG")]
-        METALLIC_DOLPHIN_GREY,
-
-        [EnumMember(Value = "MAB")]
-        METALLIC_BROWN,
-
-        [EnumMember(Value = "MBL")]
-        METALLIC_BLACK,  // Obsidian Black
-
-        [EnumMember(Value = "MMB")]
-        METALLIC_BLUE,
-
-        [EnumMember(Value = "MNG")]
-        STEEL_GREY,
-
-        [EnumMember(Value = "MSG")]
-        METALLIC_GREEN,
-
-        [EnumMember(Value = "PSW")]
-        PEARL_WHITE,
-        
-        [EnumMember(Value = "PMR")]
-        MULTICOAT_RED,
-        //Red = MULTICOAT_RED,
-
-        // Not clear whether this exists.
-        //[EnumMember(Value = "MMR")]
-        //MULTICOAT_RED_2,
-
-        [EnumMember(Value = "PSB")]
-        DEEP_BLUE_METALLIC,  // Originally called Ocean Blue
-
-        [EnumMember(Value = "PSR")]
-        SIGNATURE_RED,  // "Sunset Red"
-
-        [EnumMember(Value = "PTI")]
-        TITANIUM,  // Titanium metallic
-    }
-
-    public enum InteriorDecor
-    {
-        [EnumMember(Value = "CF")]
-        CARBON_FIBER,
-
-        [EnumMember(Value = "LW")]
-        LACEWOOD,
-
-        [EnumMember(Value = "OM")]
-        OBECHE_WOOD_MATTE,
-
-        [EnumMember(Value = "OG")]
-        OBECHE_WOOD_GLOSS,
-
-        [EnumMember(Value = "PB")]
-        PIANO_BLACK,
-    }
-
-    public enum DriverSide
-    {
-
-        [EnumMember(Value = "LH")]
-        LEFT_HAND_DRIVE,
-
-        [EnumMember(Value = "RH")]
-        RIGHT_HAND_DRIVE,
-    }
-
-    public enum Model
-    {
-        Unknown,
-        S,
-        X,
-        Three
     }
 }
