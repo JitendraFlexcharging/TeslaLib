@@ -47,7 +47,7 @@ namespace TeslaLib
         [JsonIgnore]
         public RestClient Client { get; set; }
 
-        #endregion
+        #endregion Properties
 
         #region State and Settings
 
@@ -108,7 +108,7 @@ namespace TeslaLib
             return ParseResult<VehicleStateStatus>(response);
         }
 
-        #endregion
+        #endregion State and Settings
 
         #region Commands
 
@@ -365,7 +365,7 @@ namespace TeslaLib
             }
         }
 
-        #endregion
+        #endregion Commands
 
         public string LoadStreamingValues(string values)
         {
