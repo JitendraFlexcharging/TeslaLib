@@ -15,7 +15,7 @@ namespace TeslaLib
 
         private static Dictionary<String, LoginToken> Tokens = new Dictionary<String, LoginToken>();
         private static volatile bool haveReadCacheFile = false;
-        private static Object cacheLock = new Object();
+        private static readonly Object cacheLock = new Object();
 
         // On iOS, Envrionment.OSVersion.Platform returns Unix.
         public static readonly bool OSSupportsTokenCache = Environment.OSVersion.Platform != PlatformID.Unix;
@@ -26,17 +26,29 @@ namespace TeslaLib
             if (!File.Exists(CacheFileName))
                 return;
 
-            JsonSerializer serializer = new JsonSerializer();
-            using(StreamReader reader = File.OpenText(CacheFileName))
+            try
             {
-                JsonReader jsonReader = new JsonTextReader(reader);
-                String emailAddress = null;
-                while (!reader.EndOfStream)
+                // The file format here doesn't fit well with Newtonsoft's JSON.NET, unless we serialize a List of Tuples of Email, LoginTokens.
+                // We can't change the LoginToken type - that's Tesla's specification.  And we need to correctly handle
+                // files longer than 1K in data (about 6 users).  Yes, this code allocates a lot after these changes.
+                JsonSerializer serializer = new JsonSerializer();
+                using (StreamReader reader = File.OpenText(CacheFileName))
                 {
-                    emailAddress = reader.ReadLine();
-                    LoginToken token = serializer.Deserialize<LoginToken>(jsonReader);
-                    Tokens.Add(emailAddress, token);
+                    String emailAddress = null;
+                    while (!reader.EndOfStream)
+                    {
+                        emailAddress = reader.ReadLine();
+                        String serializedToken = reader.ReadLine();
+                        JsonReader jsonReader = new JsonTextReader(new StringReader(serializedToken));
+                        LoginToken token = serializer.Deserialize<LoginToken>(jsonReader);
+                        Tokens.Add(emailAddress, token);
+                    }
                 }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Exception while reading Tesla LoginTokenCache file: {0}: {1}.  Deleting cache file.", e.GetType().Name, e.Message);
+                File.Delete(CacheFileName);
             }
         }
 
