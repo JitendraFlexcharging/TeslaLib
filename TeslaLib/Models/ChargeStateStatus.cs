@@ -166,7 +166,7 @@ namespace TeslaLib.Models
         public double IdealBatteryRange { get; set; }
 
         [JsonProperty(PropertyName = "max_range_charge_counter")]
-        public int MaxRangeChargeCounter { get; set; }
+        public int? MaxRangeChargeCounter { get; set; }
 
         [JsonProperty(PropertyName = "not_enough_power_to_heat")]
         public bool? IsNotEnoughPowerToHeat { get; set; }
