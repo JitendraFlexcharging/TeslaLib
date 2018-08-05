@@ -6,6 +6,7 @@ using RestSharp;
 using TeslaLib.Models;
 using TeslaLib.Converters;
 using System.Security;
+using System.Threading.Tasks;
 
 namespace TeslaLib
 {
@@ -13,28 +14,29 @@ namespace TeslaLib
     public class TeslaClient
     {
         public string Email { get; }
-        public string TeslaClientID { get; }
+        public string TeslaClientId { get; }
         public string TeslaClientSecret { get; }
         public string AccessToken { get; private set; }
 
         public RestClient Client { get; set; }
 
-        public static readonly string BASE_URL = "https://owner-api.teslamotors.com/api/1";
-        public static readonly string VERSION = "1.1.0";
+        public const string LoginUrl = "https://owner-api.teslamotors.com/oauth/";
+        public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
+        public const string Version = "1.1.0";
 
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
         {
             Email = email;
-            TeslaClientID = teslaClientId;
+            TeslaClientId = teslaClientId;
             TeslaClientSecret = teslaClientSecret;
 
-            Client = new RestClient(BASE_URL);
+            Client = new RestClient(BaseUrl);
             Client.Authenticator = new TeslaAuthenticator();
         }
 
-        public void LoginUsingCache(string password)
+        public async Task LoginUsingCacheAsync(string password)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
@@ -46,24 +48,18 @@ namespace TeslaLib
             }
             else
             {
-                token = GetLoginToken(password);
+                token = await GetLoginTokenAsync(password).ConfigureAwait(false);
                 SetToken(token);
                 LoginTokenCache.AddToken(Email, token);
             }
         }
 
-        public void Login(string password)
-        {
-            if (password == null)
-                throw new ArgumentNullException(nameof(password));
+        public async Task LoginAsync(string password) => SetToken(await GetLoginTokenAsync(password).ConfigureAwait(false));
 
-            LoginToken token = GetLoginToken(password);
-            SetToken(token);
-        }
-
-        private LoginToken GetLoginToken(string password)
+        private async Task<LoginToken> GetLoginTokenAsync(string password)
         {
-            var loginClient = new RestClient("https://owner-api.teslamotors.com/oauth");
+            var loginClient = new RestClient(LoginUrl);
+			
             var request = new RestRequest("token")
             {
                 RequestFormat = DataFormat.Json
@@ -72,7 +68,7 @@ namespace TeslaLib
             request.AddBody(new
             {
                 grant_type = "password",
-                client_id = TeslaClientID,
+                client_id = TeslaClientId,
                 client_secret = TeslaClientSecret,
                 email = Email,
                 password = password

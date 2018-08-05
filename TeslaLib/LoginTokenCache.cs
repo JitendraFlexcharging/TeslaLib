@@ -9,20 +9,20 @@ namespace TeslaLib
 {
     internal static class LoginTokenCache
     {
-        private const String CacheFileName = "TeslaLoginTokenCache.cache";
-        // Make sure the token from the cache is valid for this long.
+        private const string CacheFileName = "TeslaLoginTokenCache.cache";
+
         private static readonly TimeSpan ExpirationTimeWindow = TimeSpan.FromDays(1);
-
-        private static readonly Dictionary<String, LoginToken> Tokens = new Dictionary<String, LoginToken>();
-        private static volatile bool haveReadCacheFile = false;
-        private static readonly Object cacheLock = new Object();
-
+        private static readonly Dictionary<string, LoginToken> Tokens = new Dictionary<string, LoginToken>();
+        private static readonly object CacheLock = new object();
+        private static volatile bool _haveReadCacheFile;
+		
         // On iOS, Environment.OSVersion.Platform returns Unix.
         public static readonly bool OSSupportsTokenCache = Environment.OSVersion.Platform != PlatformID.Unix;
 
         private static void ReadCacheFile()
         {
             Tokens.Clear();
+
             if (!File.Exists(CacheFileName))
             {
                 return;
@@ -75,14 +75,14 @@ namespace TeslaLib
             { }
         }
 
-        public static LoginToken GetToken(String emailAddress)
+        public static LoginToken GetToken(string emailAddress)
         {
-            lock (cacheLock)
+            lock (CacheLock)
             {
-                if (!haveReadCacheFile && OSSupportsTokenCache)
+                if (!_haveReadCacheFile && OSSupportsTokenCache)
                 {
                     ReadCacheFile();
-                    haveReadCacheFile = true;
+                    _haveReadCacheFile = true;
                 }
 
                 if (!Tokens.TryGetValue(emailAddress, out LoginToken token))
@@ -104,9 +104,9 @@ namespace TeslaLib
             }
         }
 
-        public static void AddToken(String emailAddress, LoginToken token)
+        public static void AddToken(string emailAddress, LoginToken token)
         {
-            lock (cacheLock)
+            lock (CacheLock)
             {
                 Tokens[emailAddress] = token;
                 if (OSSupportsTokenCache)
@@ -116,7 +116,7 @@ namespace TeslaLib
 
         public static void ClearCache()
         {
-            lock (cacheLock)
+            lock (CacheLock)
             {
                 Tokens.Clear();
                 File.Delete(CacheFileName);

@@ -11,17 +11,19 @@ namespace TeslaConsole
             string clientSecret = "";
 
             string email = "";
-            string password = "";            
+            string password = "";
 
             TeslaClient client = new TeslaClient(email, clientId, clientSecret);
 
-            client.Login(password);
+            client.LoginAsync(password).Wait();
 
             var vehicles = client.LoadVehicles();
 
             foreach (TeslaVehicle car in vehicles)
             {
-                Console.WriteLine(car.Id + " " + car.VIN);
+                Console.WriteLine(car.Id + " " + car.Vin);
+                var climateState = car.LoadClimateStateStatus();
+                Console.WriteLine($"Climate State Inside: {climateState.InsideTemperature}  Outside: {climateState.OutsideTemperature}");
             }
 
             Console.ReadKey();

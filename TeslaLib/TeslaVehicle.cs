@@ -35,7 +35,7 @@ namespace TeslaLib
         public int VehicleId { get; set; }
 
         [JsonProperty(PropertyName = "vin")]
-        public string VIN { get; set; }
+        public string Vin { get; set; }
 
         [JsonProperty(PropertyName = "tokens")]
         public List<string> Tokens { get; set; }
@@ -281,7 +281,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
             request.AddParameter("state", roofState.GetEnumValue(), ParameterType.UrlSegment);
 
-            if (roofState == PanoramicRoofState.MOVE)
+            if (roofState == PanoramicRoofState.Move)
             {
                 request.AddParameter("percent", percentOpen, ParameterType.UrlSegment);
             }
