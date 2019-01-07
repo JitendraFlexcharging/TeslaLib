@@ -103,6 +103,9 @@ namespace TeslaLib.Models
             // A not yet delivered Model 3 (Seen March 31, 2018):
             // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
+            // As of January 2019, an older Model S P85 returned:
+            // MS03,RENA,AD02,AF00,AU00,BC0R,BS00,CH01,PPMR,CW00,DRLH,FG02,HP00,IDPB,IX01,LP01,PA00,PBT85,PF01,PK01,PS01,PX00,QYMB,RFPO,SC01,SP00,SR01,SU01,TM00,TP01,TR00,UTAW,WT1P,WTX1,X001,X003,X007,X011,X014,X019,X024,X027,X028,X031,X037,YF00,COUS
+
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
@@ -184,6 +187,14 @@ namespace TeslaLib.Models
                             // I've seen TRA1 from a Model X.  Could be a third row seating option.  Might be TR + A1,
                             // maybe.
                             break;
+
+                        case "PBT":
+                            {
+                                // An older Model S started returning PBT85 as of early 2019, instead of BT.
+                                string performanceBatteryPackSize = option.Substring(3);
+                                BatterySize = Int32.Parse(performanceBatteryPackSize);
+                            }
+                            break;
                     }
 
                     string value2 = option.Substring(2, 2);
@@ -207,7 +218,7 @@ namespace TeslaLib.Models
                             IsPerformance = int.Parse(value2) > 0;
                             break;
                         case "BT":
-                            // A Model 3 can have BT37.  Is that 70 kWh?  37 kW?
+                            // A Model 3 can have BT37.  Performance Model S's also can return values like PBT85, not BT85.
                             if (value2[0] == 'X')
                             {
                                 switch (value2[1])
@@ -240,7 +251,7 @@ namespace TeslaLib.Models
                             else if (value2 == "37")
                             {
                                 // Model 3 battery is sometimes listed as BT37.
-                                BatterySize = 37;
+                                BatterySize = 75;
                             }
                             else
                             {
@@ -378,6 +389,13 @@ namespace TeslaLib.Models
                         case "BR":
                             if (value2 != "00")
                             {
+                                // BR01 means a range upgrade was applied.  Notes on forums suggest this was vehicles 
+                                // that were software limited but now generally aren't limited, and may be able to
+                                // use the full 90 kWh in their batteries.  Not sure how long this option was in effect,
+                                // but seems like almost 25% of my first year vehicles had this set.
+                                if (value2 == "01")
+                                    break;
+
                                 if (value2 == "03")
                                     BatteryFirmwareLimit = 60;
                                 else if (value2 == "05")
