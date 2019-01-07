@@ -39,7 +39,10 @@ namespace TeslaLib.Models
         [JsonConverter(typeof(UnixTimestampConverter))]
         public DateTime GpsAsOf { get; set; }
 
-    }
+        [JsonProperty(PropertyName = "power")]
+        public double? Power { get; set; }
 
+        // There are new native_longitude and native_latitude settings.  I don't know why we would want those instead.
+    }
 
 }

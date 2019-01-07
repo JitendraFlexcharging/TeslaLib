@@ -80,6 +80,14 @@ namespace TeslaLib.Models
 
         public bool AllWheelDrive { get; set; }
 
+        public bool HasHEPAFilter { get; set; }
+
+        public int? BatteryFirmwareLimit { get; set; }
+
+        // Maximum amperage of the charger(s).  Some cars have dual chargers 40 amp chargers, or various chargers 
+        // limited to 72 amps or 48 amps, etc.
+        public int? ChargerLimit { get; set; }
+
         // Options codes change over time, with new ones showing up.  Also, there _could_ be country-specific codes.  
         // Here's a site that may help keep up with them: http://options.teslastuff.net/
         public void ParseOptionCodes(string optionCodes)
@@ -216,10 +224,23 @@ namespace TeslaLib.Models
                                         BatterySize = 100; // 100 kWh
                                         break;
 
+                                    case '7':
+                                        BatterySize = 75;
+                                        break;
+
+                                    case '8':
+                                        BatterySize = 85;
+                                        break;
+
                                     default:
                                         Console.Error.WriteLine($"Cannot parse battery type option \"{option}\".");
                                         break;
                                 }
+                            }
+                            else if (value2 == "37")
+                            {
+                                // Model 3 battery is sometimes listed as BT37.
+                                BatterySize = 37;
                             }
                             else
                             {
@@ -302,7 +323,28 @@ namespace TeslaLib.Models
                             }
                             break;
                         case "CH":
-                            HasTwinChargers = int.Parse(value2) > 0;
+                            switch(value2)
+                            {
+                                case "00":
+                                    ChargerLimit = 40;
+                                    break;
+                                case "01":
+                                    ChargerLimit = 80;
+                                    HasTwinChargers = true;
+                                    break;
+                                case "04":
+                                    ChargerLimit = 72;  // Model S/X
+                                    break;
+                                case "05":
+                                    ChargerLimit = 48;  // Model S/X
+                                    break;
+                                case "07":
+                                    ChargerLimit = 48;  // Model 3
+                                    break;
+                                default:
+                                    Console.Error.WriteLine($"Unrecognized charger type.  Vehicle Option {option}");
+                                    break;
+                            }
                             break;
                         case "HP":
                             HasHpwc = int.Parse(value2) > 0;
@@ -326,6 +368,23 @@ namespace TeslaLib.Models
                                 HasLudicrous = true;
                             else
                                 Console.Error.WriteLine($"Unrecognized option {option}.  Ludicrous-like speed option?");
+                            break;
+                        case "AF":
+                            if (value2 == "02")
+                                HasHEPAFilter = true;
+                            else if (value2 != "00")
+                                Console.Error.WriteLine($"Unrecognized HEPA filter related option {option}");
+                            break;
+                        case "BR":
+                            if (value2 != "00")
+                            {
+                                if (value2 == "03")
+                                    BatteryFirmwareLimit = 60;
+                                else if (value2 == "05")
+                                    BatteryFirmwareLimit = 75;
+                                else
+                                    Console.Error.WriteLine($"Unrecognized Battery Firmware limit related option {option}");
+                            }
                             break;
                     }
 

@@ -40,8 +40,8 @@ namespace TeslaLib.Models
         //Red = MULTICOAT_RED,
 
         // Not clear whether this exists.
-        //[EnumMember(Value = "MMR")]
-        //MULTICOAT_RED_2,
+        [EnumMember(Value = "MMR")]
+        MulticoatRed2,
 
         [EnumMember(Value = "PSB")]
         DeepBlueMetallic,  // Originally called Ocean Blue

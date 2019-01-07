@@ -84,5 +84,42 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "exterior_color")]
         //[JsonConverter(typeof(StringEnumConverter))]
         public /*TeslaColor*/string ExteriorColor { get; set; }
+
+        // Newer fields documented in Tim Dorr's docs as of Jan 2019
+        [JsonProperty(PropertyName = "api_version")]
+        public int ApiVersion { get; set; }
+
+        [JsonProperty(PropertyName = "autopark_state_v2")]
+        public string AutoparkState { get; set; }  // "standby"
+
+        [JsonProperty(PropertyName = "autopark_style")]
+        public string AutoparkStyle { get; set; }  // "standard"
+
+        [JsonProperty(PropertyName = "last_autopark_error")]
+        public string LastAutoparkError { get; set; }  // "no_error"
+
+        [JsonProperty(PropertyName = "calendar_supported")]
+        public bool IsCalendarSupported { get; set; }
+
+        [JsonProperty(PropertyName = "homelink_nearby")]
+        public bool IsHomeLinkNearby { get; set; }
+
+        [JsonProperty(PropertyName = "is_user_present")]
+        public bool IsUserPresent { get; set; }
+
+        [JsonProperty(PropertyName = "remote_start")]
+        public bool RemoteStart { get; set; }
+
+        [JsonProperty(PropertyName = "remote_start_supported")]
+        public bool RemoteStartSupported { get; set; }
+
+        [JsonProperty(PropertyName = "valet_mode")]
+        public bool IsValetMode { get; set; }
+
+        [JsonProperty(PropertyName = "valet_pin_needed")]
+        public bool IsValetPinNeeded { get; set; }
+
+        // There is a data structure for software_update
+        // There is a data structure for speed_limit_mode
     }
 }

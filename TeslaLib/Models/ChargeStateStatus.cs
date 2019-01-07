@@ -236,5 +236,13 @@ namespace TeslaLib.Models
 
         [JsonProperty(PropertyName = "managed_charging_start_time")]
         public DateTime? ManagedChargingStartTime { get; set; }
+
+        // Updates as of January 2019
+
+        [JsonProperty(PropertyName = "conn_charge_cable")]
+        public string ConnChargeCable { get; set; } // "<invalid>"
+
+        [JsonProperty(PropertyName = "fast_charger_brand")]
+        public string FastChargerBrand { get; set; }  // "<invalid>"
     }
 }
