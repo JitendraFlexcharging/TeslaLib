@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using TeslaLib.Converters;
 
 namespace TeslaLib.Models
 {
@@ -175,8 +176,9 @@ namespace TeslaLib.Models
         public bool ScheduledChargingPending { get; set; }
 
         // This is a Unix time value in seconds from 1970 in UTC.
-        // As of Dec 2018, JSON.NET sees this as a valid DateTime.
+        // We need to use a JsonConverter to make this work.
         [JsonProperty(PropertyName = "scheduled_charging_start_time")]
+        [JsonConverter(typeof(UnixTimestampConverter))]
         public DateTime? ScheduledChargingStartTime { get; set; }
 
         [JsonProperty(PropertyName = "time_to_full_charge")]
