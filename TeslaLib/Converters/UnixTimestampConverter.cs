@@ -17,11 +17,14 @@ namespace TeslaLib.Converters
         /// <returns></returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var unixTimestamp = serializer.Deserialize<long>(reader);
+            var unixTimestamp = serializer.Deserialize<long?>(reader);
+
+            if (!unixTimestamp.HasValue)
+                return null;
 
             // Convert the Unix Timestamp to a readable DateTime
             var time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            time = time.AddSeconds(unixTimestamp).ToLocalTime();
+            time = time.AddSeconds(unixTimestamp.Value).ToLocalTime();
 
             return time;
         }
