@@ -17,6 +17,15 @@ namespace TeslaLib.Models
         ObecheWoodGloss,
 
         [EnumMember(Value = "PB")]
-        PianoBlack
+        PianoBlack,
+
+        [EnumMember(Value = "3W")]
+        Model3Wood,
+
+        [EnumMember(Value = "BA")]
+        DarkAshWood,
+
+        [EnumMember(Value = "BO")]
+        FiguredAshWood
     }
 }

@@ -8,6 +8,9 @@ namespace TeslaLib.Models
         Usa,
 
         [EnumMember(Value = "NC")]
-        Canada
+        Canada,
+
+        [EnumMember(Value = "EU")]
+        Europe,
     }
 }

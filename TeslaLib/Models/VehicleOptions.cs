@@ -168,6 +168,10 @@ namespace TeslaLib.Models
                         case "MDL3":  // I don't know this is the right option code, but it seems probable.
                             Model = Model.Three;
                             break;
+                        case "PX6D":  // Zero to 60 in 2.5 sec
+                            break;
+                        case "P85D":  // Model S?  Skip for now.
+                            break;
                     }
 
 
@@ -370,6 +374,7 @@ namespace TeslaLib.Models
                             // AD15 is J1772.
                             break;
                         case "PX":
+                            // PX6D handled above.  (zero to 60 in 2.5 sec)
                             IsPerformancePlus = int.Parse(value2) > 0;
                             break;
                         case "BP":

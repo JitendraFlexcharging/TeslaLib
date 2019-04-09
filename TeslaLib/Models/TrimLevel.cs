@@ -11,6 +11,15 @@ namespace TeslaLib.Models
         //Performance,
 
         [EnumMember(Value = "02")]
-        SignaturePerformance
+        SignaturePerformance,   // General production signature trim?
+
+        [EnumMember(Value = "0A")]
+        AlphaPreproduction,
+
+        [EnumMember(Value = "0B")]
+        BetaPreproduction,
+
+        [EnumMember(Value = "0C")]
+        Preproduction,
     }
 }
