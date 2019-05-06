@@ -91,7 +91,7 @@ namespace TeslaLib
                 }
 
                 // Ensure the LoginToken is still valid.
-                var expirationTime = token.CreatedAt.ToLocalTime() + UnixTimeConverter.FromUnixTimeSpan(token.ExpiresIn);
+                var expirationTime = token.CreatedUtc.ToLocalTime() + UnixTimeConverter.FromUnixTimeSpan(token.ExpiresIn);
 
                 if (DateTime.Now + ExpirationTimeWindow >= expirationTime)
                 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using TeslaLib.Converters;
 
 namespace TeslaLib.Models
 {
@@ -25,13 +26,36 @@ namespace TeslaLib.Models
         /// Gets the expiry duration in seconds of the <see cref="AccessToken"/>.
         /// </summary>
         [JsonProperty("expires_in")]
-        public long ExpiresIn { get; }
-		
+        public long ExpiresIn { get; set; }
+
+        /// <summary>
+        /// Gets the expiry duration of the <see cref="AccessToken"/>.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan ExpiresInTimespan => TimeSpan.FromSeconds(ExpiresIn);
+
+        /// <summary>
+        /// Gets the UTC <see cref="DateTime"/> when the <see cref="AccessToken"/> expires.
+        /// </summary>
+        [JsonIgnore]
+        public DateTime ExpiresUtc => UnixTimeConverter.ToDateTime(CreatedAt + ExpiresIn);
+
         /// <summary>
         /// Gets the Epoch timestamp when the <see cref="AccessToken"/> was issued.
         /// </summary>
         [JsonProperty("created_at")]
-        public DateTime CreatedAt { get; set; }
+        public long CreatedAt { get; set; }
 
+        /// <summary>
+        /// Gets the UTC <see cref="DateTime"/> when the <see cref="AccessToken"/> was issued.
+        /// </summary>
+        [JsonIgnore]
+        public DateTime CreatedUtc => UnixTimeConverter.ToDateTime(CreatedAt);
+
+        /// <summary>
+        /// Gets the refresh token that can be used to acquire a new <see cref="AccessToken"/>.
+        /// </summary>
+        [JsonProperty("refresh_token")]
+        public string RefreshToken { get; set; }
     }
 }
