@@ -16,7 +16,7 @@
     <PackageTags>Tesla Model S X 3 ModelS ModelX Model3 API C# Vehicle Remote Wrapper REST</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="RestSharp" Version="106.6.9" />
   </ItemGroup>
 </Project>
