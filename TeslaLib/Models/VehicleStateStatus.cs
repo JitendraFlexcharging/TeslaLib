@@ -102,7 +102,7 @@ namespace TeslaLib.Models
         public bool IsCalendarSupported { get; set; }
 
         [JsonProperty(PropertyName = "homelink_nearby")]
-        public bool IsHomeLinkNearby { get; set; }
+        public bool? IsHomeLinkNearby { get; set; }
 
         [JsonProperty(PropertyName = "is_user_present")]
         public bool IsUserPresent { get; set; }
