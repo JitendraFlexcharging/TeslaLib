@@ -24,6 +24,8 @@ namespace TeslaLib
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
         public const string Version = "1.1.0";
 
+        private static IOAuthTokenStore TokenStore = null;
+
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
@@ -36,12 +38,22 @@ namespace TeslaLib
             Client.Authenticator = new TeslaAuthenticator();
         }
 
+        public static void SetOAuthTokenStore(IOAuthTokenStore tokenStore)
+        {
+            TokenStore = tokenStore;
+        }
+
         public async Task LoginUsingCacheAsync(string password)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
 
-            var token = LoginTokenCache.GetToken(Email);
+            LoginToken token = null;
+            if (TokenStore != null)
+            {
+                token = await TokenStore.GetTokenAsync(Email);
+            }
+
             if (token != null)
             {
                 SetToken(token);
@@ -50,7 +62,8 @@ namespace TeslaLib
             {
                 token = await GetLoginTokenAsync(password).ConfigureAwait(false);
                 SetToken(token);
-                LoginTokenCache.AddToken(Email, token);
+                if (TokenStore != null)
+                    await TokenStore.AddTokenAsync(Email, token);
             }
         }
 
@@ -65,7 +78,7 @@ namespace TeslaLib
                 RequestFormat = DataFormat.Json
             };
 
-            request.AddBody(new
+            request.AddJsonBody(new
             {
                 grant_type = "password",
                 client_id = TeslaClientId,
@@ -95,7 +108,11 @@ namespace TeslaLib
             AccessToken = token.AccessToken;
         }
 
-        public void ClearLoginTokenCache() => LoginTokenCache.ClearCache();
+        public void ClearLoginTokenCache()
+        {
+            if (TokenStore != null)
+                TokenStore.ClearCache();
+        }
 
         public List<TeslaVehicle> LoadVehicles()
         {
