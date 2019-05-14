@@ -106,6 +106,9 @@ namespace TeslaLib.Models
             // As of January 2019, an older Model S P85 returned:
             // MS03,RENA,AD02,AF00,AU00,BC0R,BS00,CH01,PPMR,CW00,DRLH,FG02,HP00,IDPB,IX01,LP01,PA00,PBT85,PF01,PK01,PS01,PX00,QYMB,RFPO,SC01,SP00,SR01,SU01,TM00,TP01,TR00,UTAW,WT1P,WTX1,X001,X003,X007,X011,X014,X019,X024,X027,X028,X031,X037,YF00,COUS
 
+            // Model 3, built in November 2018 as of 5/13/2019.  SC04 = Pay for supercharging.
+            // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
+
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
