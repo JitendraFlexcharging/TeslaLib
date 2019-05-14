@@ -12,7 +12,7 @@
     <Description>Tesla Model S C# API Implementation</Description>
     <Summary>Tesla Model S C# API Implementation</Summary>
     <PackageReleaseNotes>Update to .NET Core and initial release to NuGet.</PackageReleaseNotes>
-    <Copyright>Copyright 2018</Copyright>
+    <Copyright>Copyright 2018, 2019</Copyright>
     <PackageTags>Tesla Model S X 3 ModelS ModelX Model3 API C# Vehicle Remote Wrapper REST</PackageTags>
   </PropertyGroup>
   <ItemGroup>
