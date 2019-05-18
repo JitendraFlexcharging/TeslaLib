@@ -12,6 +12,10 @@ namespace TeslaLib
 
         Task AddTokenAsync(string emailAddress, LoginToken token);
 
+        Task UpdateTokenAsync(string emailAddress, LoginToken token);
+
+        Task DeleteTokenAsync(string emailAddress);
+
         void ClearCache();
     }
 }

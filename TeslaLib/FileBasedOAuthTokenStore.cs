@@ -9,7 +9,9 @@ using TeslaLib.Models;
 
 namespace TeslaLib
 {
-    public class FileBasedOAuthTokenCache : IOAuthTokenStore
+    // Note: This is not a secure storage mechanism for access tokens nor refresh tokens.
+    // Ideally this file would be encrypted.  Or, we store the contents in a secure storage mechanism, not a file on disk.
+    public class FileBasedOAuthTokenStore : IOAuthTokenStore
     {
         private const string CacheFileName = "TeslaLoginTokenCache.cache";
 
@@ -82,6 +84,28 @@ namespace TeslaLib
             lock (CacheLock)
             {
                 Tokens[emailAddress] = token;
+                if (OSSupportsTokenCache)
+                    WriteCacheFile();
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateTokenAsync(string emailAddress, LoginToken token)
+        {
+            lock (CacheLock)
+            {
+                Tokens[emailAddress] = token;
+                if (OSSupportsTokenCache)
+                    WriteCacheFile();
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteTokenAsync(string emailAddress)
+        {
+            lock (CacheLock)
+            {
+                Tokens.Remove(emailAddress);
                 if (OSSupportsTokenCache)
                     WriteCacheFile();
             }
