@@ -211,7 +211,7 @@ namespace TeslaLib
         }
 
         // For testing purposes.
-        public async Task RefreshLoginTokenAsyncAndUpdateTokenStore()
+        public async Task RefreshLoginTokenAndUpdateTokenStoreAsync()
         {
             LoginToken newToken = await RefreshLoginTokenAsync(_token);
             if (newToken == null)
