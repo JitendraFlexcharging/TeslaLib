@@ -42,9 +42,9 @@ namespace TeslaLib
             Client.Authenticator = new TeslaAuthenticator();
         }
 
-        public static void SetOAuthTokenStore(IOAuthTokenStore tokenStore)
-        {
-            TokenStore = tokenStore;
+        public static IOAuthTokenStore OAuthTokenStore {
+            get { return TokenStore; }
+            set { TokenStore = value; }
         }
 
         public async Task LoginUsingTokenStoreAsync(string password)
@@ -202,6 +202,11 @@ namespace TeslaLib
             auth.Token = token.AccessToken;
             AccessToken = token.AccessToken;
             _token = token;
+        }
+
+        public LoginToken GetTeslaLoginToken()
+        {
+            return _token;
         }
 
         public void ClearLoginTokenStore()

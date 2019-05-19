@@ -13,7 +13,7 @@ namespace TeslaConsole
             string email = "";
             string password = "";
 
-            TeslaClient.SetOAuthTokenStore(new FileBasedOAuthTokenStore());
+            TeslaClient.OAuthTokenStore = new FileBasedOAuthTokenStore();
 
             TeslaClient client = new TeslaClient(email, clientId, clientSecret);
 
