@@ -108,7 +108,7 @@ namespace TeslaLib.Models
         public bool IsUserPresent { get; set; }
 
         [JsonProperty(PropertyName = "remote_start")]
-        public bool RemoteStart { get; set; }
+        public bool? RemoteStart { get; set; }
 
         [JsonProperty(PropertyName = "remote_start_supported")]
         public bool RemoteStartSupported { get; set; }
