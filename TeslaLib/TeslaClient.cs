@@ -231,10 +231,10 @@ namespace TeslaLib
             Console.WriteLine($"New expiry time: {newToken.ExpiresUtc}");
             SetToken(newToken);
 
-            if (TokenStore == null)
-                throw new InvalidOperationException("We have no TokenStore set");
-
-            await TokenStore.UpdateTokenAsync(Email, newToken);
+            if (TokenStore != null)
+            {
+                await TokenStore.UpdateTokenAsync(Email, newToken);
+            }
         }
 
         // For a LoginToken that is close to expiry, this method will refresh the OAuth2 access token.  Returns a new LoginToken.
@@ -252,9 +252,10 @@ namespace TeslaLib
                 grant_type = "refresh_token",
                 refresh_token = loginToken.RefreshToken
             });
-            var response = await loginClient.PostAsync<LoginToken>(request);
 
-            return response;
+            var newToken = await loginClient.PostAsync<LoginToken>(request);
+
+            return newToken;
         }
 
         public List<TeslaVehicle> LoadVehicles()
