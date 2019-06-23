@@ -109,6 +109,9 @@ namespace TeslaLib.Models
             // Model 3, built in November 2018 as of 5/13/2019.  SC04 = Pay for supercharging.
             // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
+            // Model X
+            // RENA,AD15,AF02,AH00,APF2,APH3,APPB,AU01,BC0R,BP01,BR00,BS00,BTX6,CC04,CDM0,CH04,PMNG,COUS,CW02,DRLH,DSHG,DU01,DV4W,FG02,FMP6,FR01,GLFR,HC00,HP00,IDBO,INBDS,IX00,LLP1,LP01,LT6P,ME02,MI03,PF01,PI01,PK00,PX6D,QLBS,RCX0,RFPX,S07P,SC04,SP00,SR06,ST01,SU01,TIC4,TM00,TR01,TRA1,TW01,UM01,USSB,UTSB,WTSC,X001,X003,X007,X011,X013,X021,X024,X026,X028,X031,X037,X040,X042,X043,YFFC,MDLX
+
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
@@ -119,62 +122,62 @@ namespace TeslaLib.Models
                     {
                         case "X001":
                             HasPowerLiftgate = true;
-                            break;
+                            continue;
                         case "X002":
                             HasPowerLiftgate = false;
-                            break;
+                            continue;
                         case "X003":
                             HasNavigation = true;
-                            break;
+                            continue;
                         case "X004":
                             HasNavigation = false;
-                            break;
+                            continue;
                         case "X007":
                             HasPremiumExteriorLighting = true;
-                            break;
+                            continue;
                         case "X008":
                             HasPremiumExteriorLighting = false;
-                            break;
+                            continue;
                         case "X011":
                             HasHomeLink = true;
-                            break;
+                            continue;
                         case "X012":
                             HasHomeLink = false;
-                            break;
+                            continue;
                         case "X013":
                             HasSatelliteRadio = true;
-                            break;
+                            continue;
                         case "X014":
                             HasSatelliteRadio = false;
-                            break;
+                            continue;
                         case "X019":
                             HasPerformanceExterior = true;
-                            break;
+                            continue;
                         case "X020":
                             HasPerformanceExterior = false;
-                            break;
+                            continue;
                         case "X024":
                             HasPerformancePowertrain = true;
-                            break;
+                            continue;
                         case "X025":
                             HasPerformancePowertrain = false;
-                            break;
+                            continue;
                         case "DV4W":
                             AllWheelDrive = true;
-                            break;
+                            continue;
                         case "MDLX":
                             Model = Model.X;
-                            break;
+                            continue;
                         case "MDLS":
                             Model = Model.S;
-                            break;
+                            continue;
                         case "MDL3":  // I don't know this is the right option code, but it seems probable.
                             Model = Model.Three;
-                            break;
+                            continue;
                         case "PX6D":  // Zero to 60 in 2.5 sec
-                            break;
+                            continue;
                         case "P85D":  // Model S?  Skip for now.
-                            break;
+                            continue;
                     }
 
 
