@@ -264,7 +264,7 @@ namespace TeslaLib
             var response = Client.Get(request);
 
             if (response.Content.Length == 0)
-                throw new FormatException("Response was empty.");
+                throw new FormatException("Tesla's response was empty.");
 
             List<TeslaVehicle> data = null;
             try

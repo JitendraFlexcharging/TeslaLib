@@ -347,7 +347,7 @@ namespace TeslaLib
         private T ParseResult<T>(IRestResponse response)
         {
             if (response.Content.Length == 0)
-                throw new FormatException("Response was empty.");
+                throw new FormatException("Tesla's response was empty.");
 
             try
             {
