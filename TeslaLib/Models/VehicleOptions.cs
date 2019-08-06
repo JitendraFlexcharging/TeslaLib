@@ -415,6 +415,20 @@ namespace TeslaLib.Models
                                     Console.Error.WriteLine($"Unrecognized Battery Firmware limit related option {option}");
                             }
                             break;
+                        case "CO": // Country code.  Not required nor currently exposed, but nice to know this option exists.
+                            switch (value2)
+                            {
+                                case "US":
+                                    // United States
+                                    break;
+                                case "NL":
+                                    // Netherlands
+                                    break;
+                                default:
+                                    Console.Error.WriteLine($"Unrecognized country code \"{value2}\".");
+                                    break;
+                            }
+                            break;
                     }
 
                     string value3 = option.Substring(1, 3);
