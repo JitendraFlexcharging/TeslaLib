@@ -7,6 +7,7 @@ using TeslaLib.Models;
 using TeslaLib.Converters;
 using System.Security;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace TeslaLib
 {
@@ -42,7 +43,8 @@ namespace TeslaLib
             Client.Authenticator = new TeslaAuthenticator();
         }
 
-        public static IOAuthTokenStore OAuthTokenStore {
+        public static IOAuthTokenStore OAuthTokenStore
+        {
             get { return TokenStore; }
             set { TokenStore = value; }
         }
@@ -167,7 +169,7 @@ namespace TeslaLib
         private async Task<LoginToken> GetLoginTokenAsync(string password)
         {
             var loginClient = new RestClient(LoginUrl);
-			
+
             var request = new RestRequest("token")
             {
                 RequestFormat = DataFormat.Json
@@ -273,7 +275,35 @@ namespace TeslaLib
                 data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(json.ToString());
                 data.ForEach(x => x.Client = Client);
             }
-            catch(Exception e)
+            catch (Exception e)
+            {
+                if (response.Content.Contains(InternalServerErrorMessage))
+                    throw new TeslaServerException();
+                Console.WriteLine("Bad content: " + response.Content);
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
+
+            return data;
+        }
+
+        public async Task<List<TeslaVehicle>> LoadVehiclesAsync(CancellationToken cancellationToken)
+        {
+
+            var request = new RestRequest("vehicles");
+            var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
+
+            if (response.Content.Length == 0)
+                throw new FormatException("Tesla's response was empty.");
+
+            List<TeslaVehicle> data = null;
+            try
+            {
+                var json = JObject.Parse(response.Content)["response"];
+                data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(json.ToString());
+                data.ForEach(x => x.Client = Client);
+            }
+            catch (Exception e)
             {
                 if (response.Content.Contains(InternalServerErrorMessage))
                     throw new TeslaServerException();
