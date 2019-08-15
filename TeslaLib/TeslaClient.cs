@@ -206,6 +206,16 @@ namespace TeslaLib
             _token = token;
         }
 
+        internal bool IsLoggedIn()
+        {
+            if (Client == null)
+                return false;
+            var auth = Client.Authenticator as TeslaAuthenticator;
+            if (auth == null)
+                return false;
+            return _token != null && auth.Token != null && AccessToken != null;
+        }
+
         public LoginToken GetTeslaLoginToken()
         {
             return _token;
@@ -262,6 +272,9 @@ namespace TeslaLib
 
         public List<TeslaVehicle> LoadVehicles()
         {
+            if (!IsLoggedIn())
+                throw new InvalidOperationException("Log in to your Tesla account first.");
+
             var request = new RestRequest("vehicles");
             var response = Client.Get(request);
 
@@ -289,6 +302,8 @@ namespace TeslaLib
 
         public async Task<List<TeslaVehicle>> LoadVehiclesAsync(CancellationToken cancellationToken)
         {
+            if (!IsLoggedIn())
+                throw new InvalidOperationException("Log in to your Tesla account first.");
 
             var request = new RestRequest("vehicles");
             var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
