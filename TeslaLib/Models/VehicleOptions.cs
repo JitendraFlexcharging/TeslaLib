@@ -283,18 +283,18 @@ namespace TeslaLib.Models
                             }
                             break;
                         case "RF":
-						    switch (value2)
-							{
+                            switch (value2)
+                            {
                                 case "BC":
                                     RoofType = RoofType.Colored;
-									break;
+                                    break;
                                 case "PO":
                                     RoofType = RoofType.None;
-									break;
+                                    break;
                                 case "BK":
                                     RoofType = RoofType.Black;
-									break;
-						    }
+                                    break;
+                            }
                             break;
                         case "WT":
                             switch (value2)
@@ -354,7 +354,7 @@ namespace TeslaLib.Models
                             }
                             break;
                         case "CH":
-                            switch(value2)
+                            switch (value2)
                             {
                                 case "00":
                                     ChargerLimit = 40;
@@ -451,36 +451,36 @@ namespace TeslaLib.Models
                             break;
                     }
                 }
-                catch(FormatException)
+                catch (FormatException)
                 {
                     Console.WriteLine($"Cannot parse option \"{option}\".  Complete options codes: {optionCodes}");
                 }
-
-                // The MI option must be processed after the model has been determined.  It sometimes gives info on the model year of the car.
-                if (!String.IsNullOrWhiteSpace(modelRefreshNumber))
-                {
-                    // The MI00 command seems to be an offset from when the car was introduced, or when the car was redesigned.
-                    int offset = Int32.Parse(modelRefreshNumber);
-                    switch(Model)
-                    {
-                        case Model.S:
-                        case Model.X:
-                            YearModel = 2015 + offset;
-                            break;
-
-                        case Model.Three:
-                            YearModel = 2018 + offset;
-                            break;
-
-                        default:
-                            Console.WriteLine($"Error: When parsing value for the MI" + modelRefreshNumber + ", we didn't recognize a Tesla model.  Your car was a Model " + Model);
-                            break;
-                    }
-                }
-
-                if (YearModel == 0)
-                    Console.WriteLine($"Error: Could not get the model year for a Tesla.  Your car was a Model " + Model);
             }
+
+            // The MI option must be processed after the model has been determined.  It sometimes gives info on the model year of the car.
+            if (!String.IsNullOrWhiteSpace(modelRefreshNumber))
+            {
+                // The MI00 command seems to be an offset from when the car was introduced, or when the car was redesigned.
+                int offset = Int32.Parse(modelRefreshNumber);
+                switch (Model)
+                {
+                    case Model.S:
+                    case Model.X:
+                        YearModel = 2015 + offset;
+                        break;
+
+                    case Model.Three:
+                        YearModel = 2018 + offset;
+                        break;
+
+                    default:
+                        Console.WriteLine($"Error: When parsing value for the MI" + modelRefreshNumber + ", we didn't recognize a Tesla model.  Your car was a Model " + Model);
+                        break;
+                }
+            }
+
+            if (YearModel == 0)
+                Console.WriteLine($"Error: Could not get the model year for a Tesla.  Your car was a Model " + Model);
         }
     }
 }
