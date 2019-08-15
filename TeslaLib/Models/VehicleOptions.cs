@@ -114,6 +114,9 @@ namespace TeslaLib.Models
 
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
+            // Interpret the MI00 value after setting the model type.
+            String modelRefreshNumber = null;
+
             foreach (string option in options)
             {
                 try
@@ -212,8 +215,15 @@ namespace TeslaLib.Models
                     switch (option.Substring(0, 2))
                     {
                         case "MS":
-                            YearModel = int.Parse(value2);
+                            // For a Model S, we may see MS03, meaning 2014.  This is a guess though.  There is no MI00 type code with Brian's 2014 Model S.
+                            YearModel = int.Parse(value2) + 2011;
                             Model = Model.S;
+                            break;
+                        case "MI":
+                            // MI seems to be some model update offset from the introduction of that model year.
+                            // People have mapped MI00 to 2015 production refresh for a Model S.  For Brian's Model 3 from 2018, I've got MI00 too.
+                            // So let's not interpret this until after we've set the model type.
+                            modelRefreshNumber = value2;
                             break;
                         case "RE":
                             Region = Extensions.ToEnum<Region>(value2);
@@ -445,6 +455,31 @@ namespace TeslaLib.Models
                 {
                     Console.WriteLine($"Cannot parse option \"{option}\".  Complete options codes: {optionCodes}");
                 }
+
+                // The MI option must be processed after the model has been determined.  It sometimes gives info on the model year of the car.
+                if (!String.IsNullOrWhiteSpace(modelRefreshNumber))
+                {
+                    // The MI00 command seems to be an offset from when the car was introduced, or when the car was redesigned.
+                    int offset = Int32.Parse(modelRefreshNumber);
+                    switch(Model)
+                    {
+                        case Model.S:
+                        case Model.X:
+                            YearModel = 2015 + offset;
+                            break;
+
+                        case Model.Three:
+                            YearModel = 2018 + offset;
+                            break;
+
+                        default:
+                            Console.WriteLine($"Error: When parsing value for the MI" + modelRefreshNumber + ", we didn't recognize a Tesla model.  Your car was a Model " + Model);
+                            break;
+                    }
+                }
+
+                if (YearModel == 0)
+                    Console.WriteLine($"Error: Could not get the model year for a Tesla.  Your car was a Model " + Model);
             }
         }
     }
