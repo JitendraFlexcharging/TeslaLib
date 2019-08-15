@@ -27,7 +27,7 @@ namespace TeslaConsole
 
             foreach (TeslaVehicle car in vehicles)
             {
-                Console.WriteLine(car.DisplayName + "   VIN: " + car.Vin);
+                Console.WriteLine(car.DisplayName + "   VIN: " + car.Vin + "  Model year: "+car.Options.YearModel);
                 Console.Write("Waking up...  ");
                 car.WakeUp();
                 Console.WriteLine("Done");
@@ -42,7 +42,7 @@ namespace TeslaConsole
                 }
 
                 var chargeState = car.LoadChargeStateStatus();
-                Console.WriteLine($" Desired State of charge: {chargeState.ChargeLimitSoc}%");
+                Console.WriteLine($" State of charge:  {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}");
                 car.LoadDriveStateStatus();
                 car.LoadClimateStateStatus();
@@ -50,6 +50,8 @@ namespace TeslaConsole
                 car.LoadMobileEnabledStatus();
                 var options = car.Options;
                 Console.WriteLine($"  Battery size: {options.BatterySize}  Has firmware limit? {(options.BatteryFirmwareLimit.HasValue ? options.BatteryFirmwareLimit.ToString() : false.ToString())}");
+                // Note there is a BatteryRange and an EstimatedBatteryRange.  The BatteryRange seems to be about 4% higher on Brian's Model 3.  The Tesla app prints out BatteryRange.
+                Console.WriteLine($"  Battery range: {chargeState.BatteryRange}  Estimated battery range: {chargeState.EstimatedBatteryRange}  Usable battery level: {chargeState.UsableBatteryLevel}");
                 Console.WriteLine($"  Charger limit: {options.ChargerLimit}");
                 Console.WriteLine("Climate:");
                 var climate = car.LoadClimateStateStatus();
