@@ -187,7 +187,7 @@ namespace TeslaLib
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                throw new SecurityException($"Logging in failed for account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?");
+                throw new SecurityException($"Logging in failed for Tesla account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?");
             }
             if (response.ResponseStatus == ResponseStatus.Error || response.ResponseStatus == ResponseStatus.TimedOut ||
                 response.ResponseStatus == ResponseStatus.Aborted)
