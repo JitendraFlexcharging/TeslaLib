@@ -99,6 +99,15 @@ namespace TeslaLib
             return ParseResult<GuiSettingsStatus>(response);
         }
 
+        public VehicleConfig LoadVehicleConfig()
+        {
+            var request = new RestRequest("vehicles/{id}/data_request/vehicle_config");
+            request.AddParameter("id", Id, ParameterType.UrlSegment);
+
+            var response = Client.Get(request);
+            return ParseResult<VehicleConfig>(response);
+        }
+
         public VehicleStateStatus LoadVehicleStateStatus()
         {
             var request = new RestRequest("vehicles/{id}/data_request/vehicle_state");

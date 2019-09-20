@@ -11,6 +11,9 @@ namespace TeslaLib.Models
         None,
 
         [EnumMember(Value = "Black")]
-        Black
+        Black,
+
+        [EnumMember(Value = "Glass")]
+        Glass,
     }
 }

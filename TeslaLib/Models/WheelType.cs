@@ -17,5 +17,9 @@ namespace TeslaLib.Models
 
         [EnumMember(Value = "AeroTurbine19")]
         AeroTurbine19,
+
+        [EnumMember(Value = "Stiletto20")]
+        Stiletto20,
+
     }
 }
