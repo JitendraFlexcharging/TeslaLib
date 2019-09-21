@@ -113,8 +113,16 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "use_range_badging")]
         public bool UseRangeBadging { get; set; }
 
+        // We have an enum for WheelType.  It may not be complete.  Tesla may introduce new wheel types at any time.
+        // Let's try to be more resilient to that.  Sadly, that means using a String.  Maybe we could write our own StringEnumConverter
+        // that converts to Unknown if it sees something novel.
+        /*
         [JsonProperty(PropertyName = "wheel_type")]
         [JsonConverter(typeof(StringEnumConverter))]
         public WheelType WheelType { get; set; }
+        */
+        [JsonProperty(PropertyName = "wheel_type")]
+        public String WheelType { get; set; }
+
     }
 }

@@ -364,7 +364,18 @@ namespace TeslaLib
                 var data = JsonConvert.DeserializeObject<T>(json.ToString());
                 return data;
             }
-            catch(Exception e)
+            catch (JsonSerializationException e)
+            {
+                e.Data["SerializedResponse"] = response.Content;
+
+                // Hack - if we have an enum we can't deal with, print something out...  But we also can't not fail.
+                if (e.Message.StartsWith("Error converting value "))
+                {
+                    Console.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e);
+                }
+                throw;
+            }
+            catch (Exception e)
             {
                 if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
                     throw new TeslaServerException();

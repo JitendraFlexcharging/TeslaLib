@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace TeslaLib.Models
@@ -14,9 +15,11 @@ namespace TeslaLib.Models
 
         public Region Region { get; set; }
 
-        public int YearModel { get; set; }
+        // Tesla doesn't return the year for this car explicitly.  They do seem to have an offset from the first year of production. (that's a guess)
+        public int ModelRefreshNumber { get; set; }
 
-        public Model Model { get; set; }
+        // Were using MDLS, MDLX, and MDL3, but now Model S's return identical options codes to Model 3's sometimes.  Use the VehicleConfig for this purpose.
+        //public Model Model { get; set; }
 
         public TrimLevel TrimLevel { get; set; }
 
@@ -112,10 +115,10 @@ namespace TeslaLib.Models
             // Model X
             // RENA,AD15,AF02,AH00,APF2,APH3,APPB,AU01,BC0R,BP01,BR00,BS00,BTX6,CC04,CDM0,CH04,PMNG,COUS,CW02,DRLH,DSHG,DU01,DV4W,FG02,FMP6,FR01,GLFR,HC00,HP00,IDBO,INBDS,IX00,LLP1,LP01,LT6P,ME02,MI03,PF01,PI01,PK00,PX6D,QLBS,RCX0,RFPX,S07P,SC04,SP00,SR06,ST01,SU01,TIC4,TM00,TR01,TRA1,TW01,UM01,USSB,UTSB,WTSC,X001,X003,X007,X011,X013,X021,X024,X026,X028,X031,X037,X040,X042,X043,YFFC,MDLX
 
-            var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            // A 2014 Model S P85 started returning the same values as a Model 3 around August 2019:
+            // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
-            // Interpret the MI00 value after setting the model type.
-            String modelRefreshNumber = null;
+            var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
             {
@@ -169,13 +172,14 @@ namespace TeslaLib.Models
                             AllWheelDrive = true;
                             continue;
                         case "MDLX":
-                            Model = Model.X;
+                            //Model = Model.X;
                             continue;
                         case "MDLS":
-                            Model = Model.S;
+                            //Model = Model.S;
                             continue;
                         case "MDL3":  // I don't know this is the right option code, but it seems probable.
-                            Model = Model.Three;
+                            // Now everything seems to return MDL3.
+                            //Model = Model.Three;
                             continue;
                         case "PX6D":  // Zero to 60 in 2.5 sec
                             continue;
@@ -216,14 +220,13 @@ namespace TeslaLib.Models
                     {
                         case "MS":
                             // For a Model S, we may see MS03, meaning 2014.  This is a guess though.  There is no MI00 type code with Brian's 2014 Model S.
-                            YearModel = int.Parse(value2) + 2011;
-                            Model = Model.S;
+                            ModelRefreshNumber = Int32.Parse(value2);
                             break;
                         case "MI":
                             // MI seems to be some model update offset from the introduction of that model year.
                             // People have mapped MI00 to 2015 production refresh for a Model S.  For Brian's Model 3 from 2018, I've got MI00 too.
                             // So let's not interpret this until after we've set the model type.
-                            modelRefreshNumber = value2;
+                            ModelRefreshNumber = Int32.Parse(value2);
                             break;
                         case "RE":
                             Region = Extensions.ToEnum<Region>(value2);
@@ -296,24 +299,9 @@ namespace TeslaLib.Models
                                     break;
                             }
                             break;
-                        case "WT":
-                            switch (value2)
-                            {
-                                case "19":
-                                    WheelType = WheelType.Base19;
-                                    break;
-                                case "21":
-                                    WheelType = WheelType.Silver21;
-                                    break;
-                                case "SP":
-                                    WheelType = WheelType.Charcoal21;
-                                    break;
-                                case "SG":
-                                    WheelType = WheelType.CharcoalPerformance21;
-                                    break;
-                            }
 
-                            break;
+                        // Note: WT (WheelType) doesn't seem to be returned as of Sept 2019.  Moved to VehicleConfig type, basically.
+
                         case "ID":
                             InteriorDecor = Extensions.ToEnum<InteriorDecor>(value2);
                             break;
@@ -456,31 +444,6 @@ namespace TeslaLib.Models
                     Console.WriteLine($"Cannot parse option \"{option}\".  Complete options codes: {optionCodes}");
                 }
             }
-
-            // The MI option must be processed after the model has been determined.  It sometimes gives info on the model year of the car.
-            if (!String.IsNullOrWhiteSpace(modelRefreshNumber))
-            {
-                // The MI00 command seems to be an offset from when the car was introduced, or when the car was redesigned.
-                int offset = Int32.Parse(modelRefreshNumber);
-                switch (Model)
-                {
-                    case Model.S:
-                    case Model.X:
-                        YearModel = 2015 + offset;
-                        break;
-
-                    case Model.Three:
-                        YearModel = 2018 + offset;
-                        break;
-
-                    default:
-                        Console.WriteLine($"Error: When parsing value for the MI" + modelRefreshNumber + ", we didn't recognize a Tesla model.  Your car was a Model " + Model);
-                        break;
-                }
-            }
-
-            if (YearModel == 0)
-                Console.WriteLine($"Error: Could not get the model year for a Tesla.  Your car was a Model " + Model);
         }
     }
 }
