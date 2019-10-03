@@ -43,9 +43,10 @@ namespace TeslaConsole
                 }
 
                 Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion, vehicleState.CarVersion);
+
                 var vehicleConfig = car.LoadVehicleConfig();
-                Console.WriteLine("From VehicleConfig, Car type: {0}  special type: {1}  trim badging: {2}  Perf config: {3}", vehicleConfig.CarType, 
-                    vehicleConfig.CarSpecialType, vehicleConfig.TrimBadging, vehicleConfig.PerformanceConfiguration);
+                Console.WriteLine("From VehicleConfig, Car type: {0}  special type: {1}  trim badging: {2}", vehicleConfig.CarType, 
+                    vehicleConfig.CarSpecialType, vehicleConfig.TrimBadging);
                 Console.WriteLine("Use range badging? {0}  Spoiler type: {1}", vehicleConfig.UseRangeBadging, vehicleConfig.SpoilerType);
                 Console.WriteLine("Color: {0}  Roof color: {1}  Has sunroof? {2}", vehicleConfig.ExteriorColor, vehicleConfig.RoofColor, 
                     vehicleConfig.SunRoofInstalled.HasValue ? vehicleConfig.SunRoofInstalled.Value.ToString() : "false");
@@ -53,21 +54,22 @@ namespace TeslaConsole
 
                 var chargeState = car.LoadChargeStateStatus();
                 Console.WriteLine($" State of charge:  {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
+                Console.WriteLine($"  Usable battery level: {chargeState.UsableBatteryLevel}%");
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}");
                 var driveState = car.LoadDriveStateStatus();
                 Console.WriteLine("  Shift state: {0}", driveState.ShiftState);
-                car.LoadClimateStateStatus();
                 var guiSettings = car.LoadGuiStateStatus();
                 Console.WriteLine("  Units for distance: {0}   For temperature: {1}", guiSettings.DistanceUnits, guiSettings.TemperatureUnits);
 
                 var options = car.Options;
                 Console.WriteLine($"  Battery size: {options.BatterySize}  Has firmware limit? {(options.BatteryFirmwareLimit.HasValue ? options.BatteryFirmwareLimit.ToString() : false.ToString())}");
                 // Note there is a BatteryRange and an EstimatedBatteryRange.  The BatteryRange seems to be about 4% higher on Brian's Model 3.  The Tesla app prints out BatteryRange.
-                Console.WriteLine($"  Battery range: {chargeState.BatteryRange}  Estimated battery range: {chargeState.EstimatedBatteryRange}  Usable battery level: {chargeState.UsableBatteryLevel}");
-                Console.WriteLine($"  Charger limit: {options.ChargerLimit}");
+                Console.WriteLine($"  Battery range: {chargeState.BatteryRange}  Estimated battery range: {chargeState.EstimatedBatteryRange}");
+                Console.WriteLine($"  Charger limit: {options.ChargerLimit}  Has twin chargers: {options.HasTwinChargers}");
                 Console.WriteLine("Climate:");
                 var climate = car.LoadClimateStateStatus();
                 Console.WriteLine($"  Driver temperature: {climate.DriverTemperatureSetting}  Passenger: {climate.PassengerTemperatureSetting}");
+                Console.WriteLine($"Option Codes: {car.Options.RawOptionCodes}");
             }
 
             client.RefreshLoginTokenAndUpdateTokenStoreAsync().Wait();
