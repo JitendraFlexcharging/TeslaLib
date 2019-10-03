@@ -5,7 +5,7 @@ using TeslaLib.Converters;
 
 namespace TeslaLib.Models
 {
-    /*
+    /*  Old Values:
     * {"response":
     * {"charging_state":"Charging",
     * "charge_limit_soc":81,
@@ -93,6 +93,26 @@ namespace TeslaLib.Models
     "managed_charging_user_canceled": false,
     "managed_charging_start_time": null
     */
+
+    /* Oct 2019
+     * 2014 Model S, not running Tesla v10 software:
+     * {"response":{
+     * "battery_heater_on":false,"battery_level":46,"battery_range":118.12,
+     * "charge_current_request":80,"charge_current_request_max":80,"charge_enable_request":true,"charge_energy_added":0.0,
+     * "charge_limit_soc":80,"charge_limit_soc_max":100,"charge_limit_soc_min":50,"charge_limit_soc_std":90,
+     * "charge_miles_added_ideal":0.0,"charge_miles_added_rated":0.0,"charge_port_cold_weather_mode":null,
+     * "charge_port_door_open":false,"charge_port_latch":"Engaged","charge_rate":0.0,
+     * "charge_to_max_range":false,"charger_actual_current":0,"charger_phases":null,
+     * "charger_pilot_current":80,"charger_power":0,"charger_voltage":0,"charging_state":"Disconnected",
+     * "conn_charge_cable":"<invalid>","est_battery_range":104.06,"fast_charger_brand":"<invalid>","fast_charger_present":false,
+     * "fast_charger_type":"<invalid>","ideal_battery_range":136.65,
+     * "managed_charging_active":false,"managed_charging_start_time":null,"managed_charging_user_canceled":false,
+     * "max_range_charge_counter":0,"minutes_to_full_charge":0,"not_enough_power_to_heat":false,
+     * "scheduled_charging_pending":false, "scheduled_charging_start_time":null,
+     * "time_to_full_charge":0.0,
+     * "timestamp":1570005110407,"trip_charging":false,"usable_battery_level":46,"user_charge_enable_request":null}}
+    */
+
     public class ChargeStateStatus
     {
         // Note: the ChargingState started coming back as null around June 2017, coinciding with a significant
@@ -101,9 +121,6 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "charging_state")]
         [JsonConverter(typeof(StringEnumConverter))]
         public ChargingState? ChargingState { get; set; }
-
-        [JsonProperty(PropertyName = "battery_current")]
-        public double? BatteryCurrent { get; set; }
 
         [JsonProperty(PropertyName = "battery_heater_on")]
         public bool? IsBatteryHeaterOn { get; set; }
@@ -184,6 +201,9 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "time_to_full_charge")]
         public double? TimeUntilFullCharge { get; set; }
 
+        [JsonProperty(PropertyName = "minutes_to_full_charge")]
+        public int MinutesUntilFullCharge { get; set; }
+
         [JsonProperty(PropertyName = "user_charge_enable_request")]
         public bool? IsUserChargeEnableRequest { get; set; }
 
@@ -242,7 +262,7 @@ namespace TeslaLib.Models
         // Updates as of January 2019
 
         [JsonProperty(PropertyName = "conn_charge_cable")]
-        public string ConnChargeCable { get; set; } // "<invalid>"
+        public string ConnChargeCable { get; set; } // "<invalid>", "SAE"
 
         [JsonProperty(PropertyName = "fast_charger_brand")]
         public string FastChargerBrand { get; set; }  // "<invalid>"

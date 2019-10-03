@@ -10,6 +10,13 @@ using TeslaLib.Models;
 
 namespace TeslaLib
 {
+    /* Oct 2019, from a 2018 Model 3:
+     * {"response":[{"id":26396141727078272,"vehicle_id":1502282633,"vin":"5YJ3E1EBXJF080943","display_name":"Blue Lightning",
+     * "option_codes":"AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0",
+     * "color":null,"tokens":["4327e0dd67dab91b","73c94aaacdd9ecc4"],"state":"online","in_service":false,
+     * "id_s":"26396141727078272","calendar_enabled":true,"api_version":6,
+     * "backseat_token":null,"backseat_token_updated_at":null}],"count":1}
+     */
     public class TeslaVehicle
     {
 
@@ -43,6 +50,15 @@ namespace TeslaLib
         [JsonProperty(PropertyName = "state")]
         [JsonConverter(typeof(StringEnumConverter))]
         public VehicleState State { get; set; }
+
+        [JsonProperty(PropertyName = "in_service")]
+        public bool InService { get; set; }
+
+        [JsonProperty(PropertyName = "calendar_enabled")]
+        public bool CalendarEnabled { get; set; }
+
+        [JsonProperty(PropertyName = "api_version")]
+        public float ApiVersion { get; set; }
 
         [JsonIgnore]
         public RestClient Client { get; set; }
