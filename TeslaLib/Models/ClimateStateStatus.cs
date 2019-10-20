@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace TeslaLib.Models
 {
@@ -11,11 +12,25 @@ namespace TeslaLib.Models
     //
     // Model S as of 2/15/2018, with a breaking change to seat_heater settings from int to bool.  Note that seat_heater_rear_right_back is still int.
     // {"response":{"inside_temp":13.0,"outside_temp":null,"driver_temp_setting":22.2,"passenger_temp_setting":22.2,"left_temp_direction":null,
-    //  "right_temp_direction":null,"is_front_defroster_on":false,"is_rear_defroster_on":false,"fan_status":0,   // is_auto_conditioning moved
+    //  "right_temp_direction":null,"is_front_defroster_on":false,"is_rear_defroster_on":false,"fan_status":0,
     //  "is_climate_on":false,"min_avail_temp":15.0,"max_avail_temp":28.0,"seat_heater_left":false,"seat_heater_right":false,"seat_heater_rear_left":false,
     //  "seat_heater_rear_right":false,"seat_heater_rear_center":false,"seat_heater_rear_right_back":0,"seat_heater_rear_left_back":0,
     //  "battery_heater":false,"battery_heater_no_power":false,"steering_wheel_heater":false,"wiper_blade_heater":false,"side_mirror_heaters":false,
     //  "is_preconditioning":false,"smart_preconditioning":false,"is_auto_conditioning_on":null,"timestamp":1518691620545}}
+
+    // 2014 Model S P85 as of Oct 2019
+    // {"response":{"battery_heater":false,"battery_heater_no_power":false,"climate_keeper_mode":"off","defrost_mode":0,"driver_temp_setting":22.8,
+    //  "fan_status":0,"inside_temp":17.4,"is_auto_conditioning_on":false,"is_climate_on":false,"is_front_defroster_on":false,"is_preconditioning":false,
+    //  "is_rear_defroster_on":false,"left_temp_direction":268,"max_avail_temp":28.0,"min_avail_temp":15.0,"outside_temp":13.0,"passenger_temp_setting":22.8,
+    //  "remote_heater_control_enabled":false,"right_temp_direction":268,"seat_heater_left":0,"seat_heater_right":0,"side_mirror_heaters":false,
+    //  "smart_preconditioning":false,"timestamp":1571607890277,"wiper_blade_heater":false}}
+
+    // 2018 Model 3 Performance as of Oct 2019.
+    // {"response":{"battery_heater":false,"battery_heater_no_power":null,"climate_keeper_mode":"off","defrost_mode":0,"driver_temp_setting":22.2,
+    //  "fan_status":0,"inside_temp":13.1,"is_auto_conditioning_on":false,"is_climate_on":false,"is_front_defroster_on":false,"is_preconditioning":false,
+    //  "is_rear_defroster_on":false,"left_temp_direction":764,"max_avail_temp":28.0,"min_avail_temp":15.0,"outside_temp":13.0,"passenger_temp_setting":22.2,
+    //  "remote_heater_control_enabled":false,"right_temp_direction":764,"seat_heater_left":0,"seat_heater_rear_center":0,"seat_heater_rear_left":0,
+    //  "seat_heater_rear_right":0,"seat_heater_right":0,"side_mirror_heaters":false,"smart_preconditioning":false,"timestamp":1571608022588,"wiper_blade_heater":false}}
     public class ClimateStateStatus
     {
         /// <summary>
@@ -160,5 +175,11 @@ namespace TeslaLib.Models
         /// </summary>
         [JsonProperty(PropertyName = "is_preconditioning")]
         public bool? IsPreconditioning { get; set; }
+
+        /// <summary>
+        /// Climate keeper mode.  Values are "off" and "dog".  Maybe one day, baby?
+        /// </summary>
+        [JsonProperty(PropertyName = "climate_keeper_mode")]
+        public String ClimateKeeperMode { get; set; }
     }
 }

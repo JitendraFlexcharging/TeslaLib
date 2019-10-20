@@ -56,7 +56,6 @@ namespace TeslaConsole
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}");
                 var driveState = car.LoadDriveStateStatus();
                 Console.WriteLine("  Shift state: {0}", driveState.ShiftState);
-                car.LoadClimateStateStatus();
                 var guiSettings = car.LoadGuiStateStatus();
                 Console.WriteLine("  Units for distance: {0}   For temperature: {1}", guiSettings.DistanceUnits, guiSettings.TemperatureUnits);
 
@@ -65,9 +64,10 @@ namespace TeslaConsole
                 // Note there is a BatteryRange and an EstimatedBatteryRange.  The BatteryRange seems to be about 4% higher on Brian's Model 3.  The Tesla app prints out BatteryRange.
                 Console.WriteLine($"  Battery range: {chargeState.BatteryRange}  Estimated battery range: {chargeState.EstimatedBatteryRange}  Usable battery level: {chargeState.UsableBatteryLevel}");
                 Console.WriteLine($"  Charger limit: {options.ChargerLimit}");
-                Console.WriteLine("Climate:");
                 var climate = car.LoadClimateStateStatus();
+                Console.WriteLine("Climate:");
                 Console.WriteLine($"  Driver temperature: {climate.DriverTemperatureSetting}  Passenger: {climate.PassengerTemperatureSetting}");
+                Console.WriteLine($"  ClimateKeeperMode: {climate.ClimateKeeperMode}");
             }
 
             client.RefreshLoginTokenAndUpdateTokenStoreAsync().Wait();
