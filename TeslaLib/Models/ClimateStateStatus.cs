@@ -78,6 +78,9 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "is_rear_defroster_on")]
         public bool? IsRearDefrosterOn { get; set; }
 
+        [JsonProperty(PropertyName = "defrost_mode")]
+        public int? DefrostMode { get; set; }   // Seen 0.
+
         /// <summary>
         /// Fan Speed
         /// 0-6 or null

@@ -58,9 +58,11 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "motorized_charge_port")]
         public bool MotorizedChargePort { get; set; }
 
+        /*  Not returned as of Sept 2019?
         [JsonProperty(PropertyName = "perf_config")]
         [JsonConverter(typeof(StringEnumConverter))]
         public PerformanceConfiguration PerformanceConfiguration { get; set; }
+        */
 
         // ?
         [JsonProperty(PropertyName = "plg")]

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 
 namespace TeslaLib.Models
@@ -9,7 +10,10 @@ namespace TeslaLib.Models
         public VehicleOptions(string optionCodes)
         {
             ParseOptionCodes(optionCodes);
+            RawOptionCodes = optionCodes;
         }
+
+        public String RawOptionCodes { get; private set; }
 
         public RoofType RoofType { get; set; }
 
@@ -91,8 +95,8 @@ namespace TeslaLib.Models
 
         public int? BatteryFirmwareLimit { get; set; }
 
-        // Maximum amperage of the charger(s).  Some cars have dual chargers 40 amp chargers, or various chargers 
-        // limited to 72 amps or 48 amps, etc.
+        // Maximum amperage of the charger(s).  Some cars have dual chargers (2x40 amp chargers), or various chargers 
+        // limited to 72 amps or 48 amps, etc.  Model 3 Standard Range is limited to 32 Amps AC.
         public int? ChargerLimit { get; set; }
 
         // Options codes change over time, with new ones showing up.  Also, there _could_ be country-specific codes.  
@@ -120,6 +124,9 @@ namespace TeslaLib.Models
             // RENA,AD15,AF02,AH00,APF2,APH3,APPB,AU01,BC0R,BP01,BR00,BS00,BTX6,CC04,CDM0,CH04,PMNG,COUS,CW02,DRLH,DSHG,DU01,DV4W,FG02,FMP6,FR01,GLFR,HC00,HP00,IDBO,INBDS,IX00,LLP1,LP01,LT6P,ME02,MI03,PF01,PI01,PK00,PX6D,QLBS,RCX0,RFPX,S07P,SC04,SP00,SR06,ST01,SU01,TIC4,TM00,TR01,TRA1,TW01,UM01,USSB,UTSB,WTSC,X001,X003,X007,X011,X013,X021,X024,X026,X028,X031,X037,X040,X042,X043,YFFC,MDLX
 
             // A 2014 Model S P85 started returning the same values as a Model 3 Performance around August 2019:
+            // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
+
+            // In August 2019, a Model S started returning that it was a Model 3!  Here's the inconsistent, incorrectly reported Model S.
             // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -365,7 +372,8 @@ namespace TeslaLib.Models
                                     ChargerLimit = 48;  // Model 3
                                     break;
                                 default:
-                                    Console.Error.WriteLine($"Unrecognized charger type.  Vehicle Option {option}");
+                                    Console.Error.WriteLine($"Unrecognized Tesla charger limit type.  Vehicle Option {option}");
+                                    File.AppendAllText("c:\\TeslaOptionCodes.txt", "Unrecognized Tesla charger limit value: " + value2);
                                     break;
                             }
                             break;
