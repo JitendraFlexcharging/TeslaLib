@@ -112,6 +112,11 @@ namespace TeslaLib.Models
      * "time_to_full_charge":0.0,
      * "timestamp":1570005110407,"trip_charging":false,"usable_battery_level":46,"user_charge_enable_request":null}}
     */
+    /* Nov 2019
+     * 2018 Model 3, managed charging options enabled & scheduled:
+     * "managed_charging_active":false,"managed_charging_start_time":null,"managed_charging_user_canceled":false,
+     * "scheduled_charging_pending":true,"scheduled_charging_start_time":1573649400,"scheduled_departure_time":1573671600,
+     */
 
     public class ChargeStateStatus
     {
@@ -198,6 +203,13 @@ namespace TeslaLib.Models
         [JsonConverter(typeof(UnixTimestampConverter))]
         public DateTime? ScheduledChargingStartTime { get; set; }
 
+        // This is a Unix time value in seconds from 1970 in UTC.
+        // We need to use a JsonConverter to make this work.
+        [JsonProperty(PropertyName = "scheduled_departure_time")]
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        public DateTime? ScheduledDepartureTime { get; set; }
+
+        // Hours
         [JsonProperty(PropertyName = "time_to_full_charge")]
         public double? TimeUntilFullCharge { get; set; }
 
