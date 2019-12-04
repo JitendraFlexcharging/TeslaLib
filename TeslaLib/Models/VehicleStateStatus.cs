@@ -116,6 +116,12 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "valet_pin_needed")]
         public bool IsValetPinNeeded { get; set; }
 
+        [JsonProperty(PropertyName = "sentry_mode")]
+        public bool SentryMode { get; set; }
+
+        [JsonProperty(PropertyName = "sentry_mode_available")]
+        public bool SentryModeAvailable { get; set; }
+
         // There is a data structure for software_update
         // There is a data structure for speed_limit_mode
     }
