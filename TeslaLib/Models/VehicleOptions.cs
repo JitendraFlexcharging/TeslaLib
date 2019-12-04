@@ -453,7 +453,7 @@ namespace TeslaLib.Models
                 }
                 catch (FormatException)
                 {
-                    Console.WriteLine($"Cannot parse option \"{option}\".  Complete options codes: {optionCodes}");
+                    TeslaClient.Logger.WriteLine($"Cannot parse Tesla option \"{option}\".  Complete options codes: {optionCodes}");
                 }
             }
         }

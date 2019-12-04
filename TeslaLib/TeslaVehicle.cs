@@ -82,6 +82,7 @@ namespace TeslaLib
             catch (FormatException e)
             {
                 e.Data["SerializedResponse"] = response.Content;
+                TeslaClient.Logger.WriteLine("LoadMobileEnabledStatus failed to parse results.  JSON: \"" + json.ToString()+"\"");
                 throw;
             }
 
@@ -164,6 +165,7 @@ namespace TeslaLib
 
                 // Every once in a while, WakeUp will throw a JsonReaderException.  Let's see why.
                 e.Data["SerializedResponse"] = response.Content;
+                TeslaClient.Logger.WriteLine("Wakeup failed to parse results.  JSON: \"" + json.ToString() + "\"");
                 throw;
             }
             var data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
@@ -396,7 +398,7 @@ namespace TeslaLib
                 // Hack - if we have an enum we can't deal with, print something out...  But we also can't not fail.
                 if (e.Message.StartsWith("Error converting value "))
                 {
-                    Console.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e);
+                    TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e);
                 }
                 throw;
             }

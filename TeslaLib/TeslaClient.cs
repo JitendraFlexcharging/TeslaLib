@@ -8,6 +8,7 @@ using TeslaLib.Converters;
 using System.Security;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO;
 
 namespace TeslaLib
 {
@@ -26,6 +27,8 @@ namespace TeslaLib
         public const string LoginUrl = "https://owner-api.teslamotors.com/oauth/";
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
         public const string Version = "1.1.0";
+
+        public static TextWriter Logger = Console.Out;
 
         private static IOAuthTokenStore TokenStore = null;
         // If we are within perhaps two weeks of our OAuth2 token expiring, renew the token.
