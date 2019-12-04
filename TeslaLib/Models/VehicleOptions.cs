@@ -168,6 +168,8 @@ namespace TeslaLib.Models
                             HasSatelliteRadio = false;
                             continue;
                         case "X019":
+                            // Tim Dorr's documentation says this is whether we have a carbon fiber spoiler.
+                            // There may be (or have been) an SLR1 option for that too...
                             HasPerformanceExterior = true;
                             continue;
                         case "X020":
@@ -178,6 +180,12 @@ namespace TeslaLib.Models
                             continue;
                         case "X025":
                             HasPerformancePowertrain = false;
+                            continue;
+                        case "X041":
+                            // No Auto Presenting Door (probably Model X only)
+                            continue;
+                        case "X042":
+                            // Has Auto Presenting Door (probably Model X only)
                             continue;
                         case "DV4W":
                             AllWheelDrive = true;
@@ -208,7 +216,7 @@ namespace TeslaLib.Models
                             else if (value1 == "1")
                                 HasCHAdeMOAdapter = true;
                             else
-                                Console.Error.WriteLine($"Unrecognized option {option}.  A new CHAdeMO adapter type?");
+                                TeslaClient.Logger.WriteLine($"Unrecognized option {option}.  A new CHAdeMO adapter type?");
                             break;
 
                         case "TRA":
@@ -222,6 +230,14 @@ namespace TeslaLib.Models
                                 string performanceBatteryPackSize = option.Substring(3);
                                 BatterySize = Int32.Parse(performanceBatteryPackSize);
                             }
+                            break;
+
+                        case "LT6":
+                            // Known values are LT6W for white base lower trim, and LT6P (?)
+                            break;
+
+                        case "RCX":
+                            // Rear console - RCX0 for no rear console, and RCX1 for having one.
                             break;
                     }
 
@@ -237,6 +253,13 @@ namespace TeslaLib.Models
                             // MI seems to be some model update offset from the introduction of that model year.
                             // People have mapped MI00 to 2015 production refresh for a Model S.  For Brian's Model 3 from 2018, I've got MI00 too.
                             // So let's not interpret this until after we've set the model type.
+                            /* Tim Dorr documentation, which may not be complete or correct:
+                             * MI00	2015 Production Refresh	
+                               MI00	Project/Program Code M3	Base Manufacturing Intro Code
+                               MI01	2016 Production Refresh	
+                               MI02	2017 Production Refresh	
+                               MI03	201? Production Refresh	Found on Model X ordered 11/2018 delivered 3/2019
+                            */
                             ModelRefreshNumber = Int32.Parse(value2);
                             break;
                         case "RE":
@@ -307,6 +330,21 @@ namespace TeslaLib.Models
                                     break;
                                 case "BK":
                                     RoofType = RoofType.Black;
+                                    break;
+                                case "FG":
+                                    RoofType = RoofType.Glass;
+                                    break;
+                                case "P0":
+                                    RoofType = RoofType.AllGlassPanoramic;
+                                    break;
+                                case "P2":
+                                    RoofType = RoofType.Sunroof;
+                                    break;
+                                case "PX":
+                                    RoofType = RoofType.ModelX;
+                                    break;
+                                default:
+                                    TeslaClient.Logger.WriteLine("Unrecognized roof type: " + option);
                                     break;
                             }
                             break;
@@ -459,3 +497,4 @@ namespace TeslaLib.Models
         }
     }
 }
+ 

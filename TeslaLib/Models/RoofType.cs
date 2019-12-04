@@ -15,5 +15,14 @@ namespace TeslaLib.Models
 
         [EnumMember(Value = "Glass")]
         Glass,
+
+        [EnumMember(Value = "AllGlassPanoramic")]
+        AllGlassPanoramic,
+
+        [EnumMember(Value = "ModelX")]
+        ModelX,
+
+        [EnumMember(Value = "Sunroof")]
+        Sunroof,
     }
 }
