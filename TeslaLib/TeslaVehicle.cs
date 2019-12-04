@@ -74,7 +74,16 @@ namespace TeslaLib
 
             var response = Client.Get(request);
             var json = JObject.Parse(response.Content)["response"];
-            var data = bool.Parse(json.ToString());
+            bool data = true;
+            try
+            {
+                data = bool.Parse(json.ToString());
+            }
+            catch (FormatException e)
+            {
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
 
             return data;
         }
