@@ -16,6 +16,9 @@ namespace TeslaLib.Models
         [EnumMember(Value = "Waking")]
         Waking,
 
+        [EnumMember(Value = "shutdown")]
+        Shutdown,
+
         // I saw this for half an hour while charging at a Supercharger then while driving.  Perhaps the modem was
         // offline, or Tesla's web service was offline?
         [EnumMember(Value = "unknown")]

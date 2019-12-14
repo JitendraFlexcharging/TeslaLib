@@ -19,8 +19,8 @@ namespace TeslaConsole
 
             // If we have logged in previously with the same email address, then we can use this method and refresh tokens,
             // assuming the refresh token hasn't expired.
-            client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
-            //client.LoginUsingTokenStoreAsync(password).Wait();
+            //client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
+            client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
 
             var vehicles = client.LoadVehicles();
@@ -29,9 +29,13 @@ namespace TeslaConsole
             {
                 Console.WriteLine(car.DisplayName + "   VIN: " + car.Vin + "  Model refresh number: "+car.Options.ModelRefreshNumber);
                 Console.WriteLine("Is mobile access enabled?  {0}", car.LoadMobileEnabledStatus());
-                Console.Write("Waking up...  ");
-                car.WakeUp();
-                Console.WriteLine("Done");
+                Console.WriteLine("Car state: {0}", car.State);
+                if (car.State != TeslaLib.Models.VehicleState.Online)
+                {
+                    Console.Write("Waking up...  ");
+                    var newState = car.WakeUp();
+                    Console.WriteLine("WakeUp returned.  New vehicle state: {0}", newState);
+                }
 
                 var vehicleState = car.LoadVehicleStateStatus();
                 if (vehicleState == null)
