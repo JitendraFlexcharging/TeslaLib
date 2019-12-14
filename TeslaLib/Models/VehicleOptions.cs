@@ -332,6 +332,7 @@ namespace TeslaLib.Models
                                     RoofType = RoofType.Black;
                                     break;
                                 case "FG":
+                                case "3G":
                                     RoofType = RoofType.Glass;
                                     break;
                                 case "P0":
