@@ -34,5 +34,10 @@ namespace TeslaLib.Models
 
         [EnumMember(Value = "Super21Silver")]
         Super21Silver,
+
+        // Possible new wheel types that may show up, based on someone's reverse engineering
+        // https://twitter.com/greentheonly/status/1208160416305688576
+        // Stiletto20DarkSquare (maybe that's what the Cybertruck has?)
+        // Pinwheel18CapKit
     }
 }

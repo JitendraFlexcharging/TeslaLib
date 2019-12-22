@@ -5,6 +5,10 @@ namespace TeslaLib.Models
         Unknown,
         S,
         X,
-        Three
+        Three,
+        Y,
+        Semi,
+        Roadster,  // V2 of course
+        Cybertruck
     }
 }
