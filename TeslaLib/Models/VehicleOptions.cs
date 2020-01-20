@@ -239,6 +239,12 @@ namespace TeslaLib.Models
                         case "RCX":
                             // Rear console - RCX0 for no rear console, and RCX1 for having one.
                             break;
+
+                        case "SPT":
+                            // Supposed Model 3 performance option code.  Brian's Model 3 Performance doesn't have it.
+                            if (option == "SPT31")
+                                IsPerformance = true;
+                            break;
                     }
 
                     string value2 = option.Substring(2, 2);
