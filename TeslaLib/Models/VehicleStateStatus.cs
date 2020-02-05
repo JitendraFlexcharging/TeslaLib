@@ -81,7 +81,7 @@ namespace TeslaLib.Models
 
         // Newer fields documented in Tim Dorr's docs as of Jan 2019
         [JsonProperty(PropertyName = "api_version")]
-        public int ApiVersion { get; set; }
+        public int? ApiVersion { get; set; }
 
         [JsonProperty(PropertyName = "autopark_state_v2")]
         public string AutoparkStateV2 { get; set; }  // "standby"
