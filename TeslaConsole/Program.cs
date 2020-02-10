@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using TeslaLib;
 
 namespace TeslaConsole
@@ -22,6 +24,17 @@ namespace TeslaConsole
             //client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
             client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
+
+            //client.GetAllProductsAsync(CancellationToken.None).Wait();
+            List<EnergySite> energySites = client.GetEnergySitesAsync(CancellationToken.None).Result;
+            if (energySites != null && energySites.Count != 0)
+            {
+                Console.WriteLine("Found {0} energy sites", energySites.Count);
+                foreach(EnergySite energySite in energySites)
+                {
+                    Console.WriteLine($"Energy site name: {energySite.SiteName}  SoC: {energySite.StateOfCharge.ToString("0.0")}%  Power: {energySite.BatteryPower}  Energy left: {energySite.EnergyLeft.ToString("0")} / {energySite.TotalPackEnergy}");
+                }
+            }
 
             var vehicles = client.LoadVehicles();
 
