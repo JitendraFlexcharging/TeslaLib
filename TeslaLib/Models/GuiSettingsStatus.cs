@@ -21,5 +21,9 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "gui_range_display")]
         public string RangeDisplay { get; set; }
 
+        /* Added by Feb 2020, but not interesting to retrieve.
+        [JsonProperty(PropertyName = "show_range_units")]
+        public bool ShowRangeUnits { get; set; }
+        */
     }
 }

@@ -25,6 +25,14 @@ namespace TeslaLib.Models
     //  "remote_heater_control_enabled":false,"right_temp_direction":268,"seat_heater_left":0,"seat_heater_right":0,"side_mirror_heaters":false,
     //  "smart_preconditioning":false,"timestamp":1571607890277,"wiper_blade_heater":false}}
 
+    // {"response":{"battery_heater":false,"battery_heater_no_power":null,"climate_keeper_mode":"off","defrost_mode":0,"driver_temp_setting":21.7,
+    //  "fan_status":0,"inside_temp":null,"is_auto_conditioning_on":null,"is_climate_on":false,"is_front_defroster_on":false,"is_preconditioning":false,
+    //  "is_rear_defroster_on":false,"left_temp_direction":null,"max_avail_temp":28.0,"min_avail_temp":15.0,"outside_temp":null,"passenger_temp_setting":21.7,
+    //  "remote_heater_control_enabled":false,"right_temp_direction":null,"seat_heater_left":0,"seat_heater_right":0,"side_mirror_heaters":false,
+    //  "timestamp":1581305100019,"wiper_blade_heater":false}}
+
+
+
     // 2018 Model 3 Performance as of Oct 2019.
     // {"response":{"battery_heater":false,"battery_heater_no_power":null,"climate_keeper_mode":"off","defrost_mode":0,"driver_temp_setting":22.2,
     //  "fan_status":0,"inside_temp":13.1,"is_auto_conditioning_on":false,"is_climate_on":false,"is_front_defroster_on":false,"is_preconditioning":false,
@@ -135,11 +143,13 @@ namespace TeslaLib.Models
         public int SeatHeaterRearRightBack { get; set; }
         */
 
+        /* Added in ~2019, but gone by Feb 2020
         /// <summary>
         /// Whether to start warming up the car before predicted use.
         /// </summary>
         [JsonProperty(PropertyName = "smart_preconditioning")]
         public bool SmartPreconditioning { get; set; }
+        */
 
         // New values as of Feb 15, 2018
 
