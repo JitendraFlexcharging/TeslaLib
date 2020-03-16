@@ -73,6 +73,7 @@ namespace TeslaConsole
 
                 var chargeState = car.LoadChargeStateStatus();
                 Console.WriteLine($" State of charge:  {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
+                Console.WriteLine($" Charging state: {(chargeState.ChargingState.HasValue ? chargeState.ChargingState.Value.ToString() : "unknown")}");
                 Console.WriteLine($"  Time until full charge: {chargeState.TimeUntilFullCharge} hours ({60*chargeState.TimeUntilFullCharge} minutes)  Usable battery level: {chargeState.UsableBatteryLevel}%");
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}");
                 Console.WriteLine($" Scheduled departure time: {chargeState.ScheduledDepartureTime}");
