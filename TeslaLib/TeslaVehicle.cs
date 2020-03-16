@@ -195,7 +195,7 @@ namespace TeslaLib
             {
                 data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 ReportKnownErrors(response);
                 throw;
