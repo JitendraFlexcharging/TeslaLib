@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -81,12 +82,32 @@ namespace TeslaLib
             }
             catch (FormatException e)
             {
+                ReportKnownErrors(response);
                 e.Data["SerializedResponse"] = response.Content;
-                TeslaClient.Logger.WriteLine("LoadMobileEnabledStatus failed to parse results.  JSON: \"" + json.ToString()+"\"");
+                TeslaClient.Logger.WriteLine("LoadMobileEnabledStatus failed to parse results.  JSON: \"" + json.ToString() + "\"");
                 throw;
             }
 
             return data;
+        }
+
+        private static void ReportKnownErrors(IRestResponse response)
+        {
+            if (response.StatusCode == HttpStatusCode.RequestTimeout)
+            {
+                // An example
+                // "error":"vehicle unavailable: {:error=>\"vehicle unavailable:\"}"
+                var errorJson = JObject.Parse(response.Content)["error"];
+                String error = String.Empty;
+                if (errorJson != null)
+                {
+                    error = errorJson.ToString();
+                    if (error != null)
+                        error = ":  " + error.Split(':')[0];
+
+                }
+                throw new TimeoutException("Timeout accessing a Tesla vehicle" + error);
+            }
         }
 
         public ChargeStateStatus LoadChargeStateStatus()
@@ -168,7 +189,17 @@ namespace TeslaLib
                 TeslaClient.Logger.WriteLine("Wakeup failed to parse results.  JSON: \"" + json + "\"");
                 throw;
             }
-            var data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
+
+            TeslaVehicle data = null;
+            try
+            {
+                data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
+            }
+            catch(Exception e)
+            {
+                ReportKnownErrors(response);
+                throw;
+            }
             return data?.State ?? VehicleState.Asleep;
         }
 
@@ -393,6 +424,8 @@ namespace TeslaLib
             }
             catch (JsonSerializationException e)
             {
+                ReportKnownErrors(response);
+
                 e.Data["SerializedResponse"] = response.Content;
 
                 // Hack - if we have an enum we can't deal with, print something out...  But we also can't not fail.
