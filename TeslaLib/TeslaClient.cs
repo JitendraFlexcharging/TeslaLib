@@ -332,5 +332,113 @@ namespace TeslaLib
 
             return data;
         }
+
+        /*
+        public async Task<List<String>> GetAllProductsAsync(CancellationToken cancellationToken)
+        {
+            if (!IsLoggedIn())
+                throw new InvalidOperationException("Log in to your Tesla account first.");
+
+            var request = new RestRequest("products");
+            var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
+
+            if (response.Content.Length == 0)
+                throw new FormatException("Tesla's response was empty.");
+
+            List<String> data = null;
+            try
+            {
+                var json = JObject.Parse(response.Content)["response"];
+                String str = json.ToString();
+                data = JsonConvert.DeserializeObject<List<String>>(str);
+                //data.ForEach(x => x.Client = Client);
+            }
+            catch (Exception e)
+            {
+                if (response.Content.Contains(InternalServerErrorMessage))
+                    throw new TeslaServerException();
+                Console.WriteLine("Bad content: " + response.Content);
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
+
+            return data;
+        }
+        */
+
+        public async Task<List<EnergySite>> GetEnergySitesAsync(CancellationToken cancellationToken)
+        {
+            if (!IsLoggedIn())
+                throw new InvalidOperationException("Log in to your Tesla account first.");
+
+            var request = new RestRequest("products");
+            var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
+
+            if (response.Content.Length == 0)
+                throw new FormatException("Tesla's response was empty.");
+
+            List<EnergySite> data = null;
+            try
+            {
+                var json = JObject.Parse(response.Content)["response"];
+                String str = json.ToString();
+                // We get an array of cars, energy sites, and maybe powerwalls in JSON.  Gotta parse these separately though,
+                // because I don't think we can deserialize a List<A | B>.  
+                data = new List<EnergySite>();
+                String[] sections = JsonSplit(str);
+                foreach(var section in sections)
+                {
+                    if (section.Contains("energy_site_id"))
+                    {
+                        EnergySite energySite = JsonConvert.DeserializeObject<EnergySite>(section);
+                        data.Add(energySite);
+                    }
+                }
+                data.ForEach(x => x.Client = Client);
+            }
+            catch (Exception e)
+            {
+                if (response.Content.Contains(InternalServerErrorMessage))
+                    throw new TeslaServerException();
+                Console.WriteLine("Bad content: " + response.Content);
+                e.Data["SerializedResponse"] = response.Content;
+                throw;
+            }
+
+            return data;
+        }
+
+        private static String[] JsonSplit(String str)
+        {
+            List<String> sections = new List<String>();
+            int i = 0;
+            while (i<str.Length)
+            {
+                while (i < str.Length && str[i] != '{') i++;
+                if (i == str.Length)
+                    break;
+                int startIndex = i;
+                i++;
+                int depth = 0;
+                while (i < str.Length)
+                {
+                    if (str[i] == '{')
+                        depth++;
+                    if (str[i] == '}')
+                    {
+                        depth--;
+                        if (depth < 0)
+                        {
+                            int lastIndex = i;
+                            String section = str.Substring(startIndex, lastIndex - startIndex + 1);
+                            sections.Add(section);
+                            break;
+                        }
+                    }
+                    i++;
+                }
+            }
+            return sections.ToArray();
+        }
     }
 }
