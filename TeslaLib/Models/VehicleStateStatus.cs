@@ -34,6 +34,9 @@ namespace TeslaLib.Models
     // "speed_limit_mode":{"active":false,"current_limit_mph":90.0,"max_limit_mph":90,"min_limit_mph":50,
     // "pin_code_set":false},"sun_roof_percent_open":null,"sun_roof_state":"unknown",
     // "timestamp":1568999504491,"valet_mode":false,"valet_pin_needed":true,"vehicle_name":"Blue Lightning"}}
+    //
+    // As of March 2020, the software update data structure changed:
+    // "software_update":{"download_perc":0,"expected_duration_sec":2700,"install_perc":1,"status":"","version":""},
     public class VehicleStateStatus
     {
         [JsonProperty(PropertyName = "df")]

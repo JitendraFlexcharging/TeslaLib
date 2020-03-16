@@ -15,6 +15,9 @@ namespace TeslaLib.Models
     // "eu_vehicle":false,"exterior_color":"DeepBlue","has_air_suspension":false,"has_ludicrous_mode":false,"key_version":2,"motorized_charge_port":true,"plg":false,
     // "rear_seat_heaters":1,"rear_seat_type":null,"rhd":false,"roof_color":"Glass","seat_type":null,"spoiler_type":"Passive","sun_roof_installed":null,"third_row_seats":"<invalid>",
     // "timestamp":1568999945749,"use_range_badging":true,"wheel_type":"Stiletto20"}}
+    //
+    // As of March 2020, there's a new "ece_restrictions" field.  Looks like this is to comply with the European Union's UN/ECE r79 regulations on Autopilot.
+    // https://www.teslarati.com/tesla-autopilot-europe-restrictions-explained-video/
     public class VehicleConfig
     {
         [JsonProperty(PropertyName = "can_accept_navigation_requests")]
