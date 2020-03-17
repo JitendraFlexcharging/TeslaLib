@@ -240,7 +240,7 @@ namespace TeslaLib
                 return;
             }
 
-            Console.WriteLine($"RefreshLoginTokenAsync: Old access token: {_token.AccessToken}\r\nOld refresh token: {_token.RefreshToken}");
+            Console.WriteLine($"TeslaClient.RefreshLoginTokenAsync: Old access token: {_token.AccessToken}\r\nOld refresh token: {_token.RefreshToken}");
             Console.WriteLine($"Old expiry time: {_token.ExpiresUtc}");
             Console.WriteLine($"New access token: {newToken.AccessToken}\r\nNew refresh token: {newToken.RefreshToken}");
             Console.WriteLine($"New expiry time: {newToken.ExpiresUtc}");
@@ -363,9 +363,13 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                TeslaClient.Logger.WriteLine("TeslaClient.GetAllProductsAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
-                    throw new TeslaServerException();
-                Console.WriteLine("Bad content: " + response.Content);
+                {
+                    var tse = new TeslaServerException();
+                    tse.Data["SerializedResponse"] = response.Content;
+                    throw tse;
+                }
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
@@ -406,9 +410,13 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                TeslaClient.Logger.WriteLine("TeslaClient.GetEnergySitesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
-                    throw new TeslaServerException();
-                Console.WriteLine("Bad content: " + response.Content);
+                {
+                    var tse = new TeslaServerException();
+                    tse.Data["SerializedResponse"] = response.Content;
+                    throw tse;
+                }
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }

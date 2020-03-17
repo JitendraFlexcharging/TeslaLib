@@ -52,7 +52,7 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception while reading Tesla LoginTokenCache file: {0}: {1}.  Deleting cache file.", e.GetType().Name, e.Message);
+                TeslaClient.Logger.WriteLine("Exception while reading Tesla LoginTokenCache file: {0}: {1}.  Deleting cache file.", e.GetType().Name, e.Message);
                 File.Delete(CacheFileName);
             }
         }
