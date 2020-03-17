@@ -36,8 +36,10 @@ namespace TeslaLib
         [JsonConverter(typeof(VehicleOptionsConverter))]
         public VehicleOptions Options { get; set; }
 
+        /*
         [JsonProperty(PropertyName = "user_id")]
         public int UserId { get; set; }
+        */
 
         [JsonProperty(PropertyName = "vehicle_id")]
         public int VehicleId { get; set; }
@@ -91,7 +93,7 @@ namespace TeslaLib
             return data;
         }
 
-        private static void ReportKnownErrors(IRestResponse response)
+        private void ReportKnownErrors(IRestResponse response)
         {
             if (response.StatusCode == HttpStatusCode.RequestTimeout)
             {
@@ -107,6 +109,14 @@ namespace TeslaLib
 
                 }
                 throw new TimeoutException("Timeout accessing a Tesla vehicle" + error);
+            }
+
+            if (response.Content == TeslaClient.ThrottlingMessage)
+            {
+                var throttled = new TeslaThrottlingException();
+                throttled.Data["StatusCode"] = response.StatusCode;
+                TeslaClient.Logger.WriteLine("Tesla account for car {0} named {1} was throttled by Tesla.  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
+                throw throttled;
             }
         }
 
@@ -439,6 +449,7 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                ReportKnownErrors(response);
                 if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
                     throw new TeslaServerException();
 

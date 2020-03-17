@@ -35,6 +35,7 @@ namespace TeslaLib
         private static readonly TimeSpan TokenExpirationRenewalWindow = TimeSpan.FromDays(14);
 
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
+        internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
         {
@@ -293,6 +294,14 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                if (response.Content == ThrottlingMessage)
+                {
+                    var throttled = new TeslaThrottlingException();
+                    throttled.Data["StatusCode"] = response.StatusCode;
+                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
+                    throw throttled;
+                }
+
                 TeslaClient.Logger.WriteLine("TeslaClient.LoadVehicles failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
                 {
@@ -327,6 +336,14 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                if (response.Content == ThrottlingMessage)
+                {
+                    var throttled = new TeslaThrottlingException();
+                    throttled.Data["StatusCode"] = response.StatusCode;
+                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
+                    throw throttled;
+                }
+
                 TeslaClient.Logger.WriteLine("TeslaClient.LoadVehiclesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
                 {
@@ -363,6 +380,14 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                if (response.Content == ThrottlingMessage)
+                {
+                    var throttled = new TeslaThrottlingException();
+                    throttled.Data["StatusCode"] = response.StatusCode;
+                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
+                    throw throttled;
+                }
+
                 TeslaClient.Logger.WriteLine("TeslaClient.GetAllProductsAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
                 {
@@ -410,6 +435,14 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                if (response.Content == ThrottlingMessage)
+                {
+                    var throttled = new TeslaThrottlingException();
+                    throttled.Data["StatusCode"] = response.StatusCode;
+                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
+                    throw throttled;
+                }
+
                 TeslaClient.Logger.WriteLine("TeslaClient.GetEnergySitesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
                 {
