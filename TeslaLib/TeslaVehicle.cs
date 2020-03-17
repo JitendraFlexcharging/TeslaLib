@@ -195,9 +195,11 @@ namespace TeslaLib
             {
                 data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
             }
-            catch(Exception)
+            catch(Exception e)
             {
                 ReportKnownErrors(response);
+                e.Data["SerializedResponse"] = response.Content;
+                TeslaClient.Logger.WriteLine("Wakeup failed to deserialize.  JSON: \"" + json + "\"");
                 throw;
             }
             return data?.State ?? VehicleState.Asleep;

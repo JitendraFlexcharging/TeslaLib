@@ -293,9 +293,13 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                TeslaClient.Logger.WriteLine("TeslaClient.LoadVehicles failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
-                    throw new TeslaServerException();
-                Console.WriteLine("Bad content: " + response.Content);
+                {
+                    var tse = new TeslaServerException();
+                    tse.Data["SerializedResponse"] = response.Content;
+                    throw tse;
+                }
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
@@ -323,9 +327,13 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
+                TeslaClient.Logger.WriteLine("TeslaClient.LoadVehiclesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
-                    throw new TeslaServerException();
-                Console.WriteLine("Bad content: " + response.Content);
+                {
+                    var tse = new TeslaServerException();
+                    tse.Data["SerializedResponse"] = response.Content;
+                    throw tse;
+                }
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
             }
