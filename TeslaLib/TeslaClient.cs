@@ -28,7 +28,7 @@ namespace TeslaLib
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
         public const string Version = "1.1.0";
 
-        public static TextWriter Logger = Console.Out;
+        public static TextWriter Logger = TextWriter.Null;
 
         private static IOAuthTokenStore TokenStore = null;
         // If we are within perhaps two weeks of our OAuth2 token expiring, renew the token.
