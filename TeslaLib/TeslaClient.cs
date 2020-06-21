@@ -9,6 +9,8 @@ using System.Security;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.Net;
+using System.Linq;
 
 namespace TeslaLib
 {
@@ -101,9 +103,33 @@ namespace TeslaLib
                 }
             }
 
+            if (token != null)
+            {
+                // Now see if the login worked.  If so, great.  If not, try logging in with the password provided.
+                try
+                {
+                    var vehicles = await LoadVehiclesAsync(CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    token = null;
+                }
+            }
+
             if (token == null)
             {
-                token = await GetLoginTokenAsync(password).ConfigureAwait(false);
+                try
+                {
+                    token = await GetLoginTokenAsync(password).ConfigureAwait(false);
+                }
+                catch(SecurityException)
+                {
+                    if (TokenStore != null)
+                        await TokenStore.DeleteTokenAsync(Email);
+                    throw;
+                }
+
+                // Successfully obtained a new token.
                 SetToken(token);
                 if (TokenStore != null)
                     await TokenStore.AddTokenAsync(Email, token);
@@ -232,13 +258,13 @@ namespace TeslaLib
         }
 
         // For testing purposes.
-        public async Task RefreshLoginTokenAndUpdateTokenStoreAsync()
+        public async Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync()
         {
             LoginToken newToken = await RefreshLoginTokenAsync(_token);
-            if (newToken == null)
+            if (newToken == null || newToken.AccessToken == null)
             {
                 Console.WriteLine("Refreshing the login token failed for {0}", Email);
-                return;
+                return false;
             }
 
             Console.WriteLine($"TeslaClient.RefreshLoginTokenAsync: Old access token: {_token.AccessToken}\r\nOld refresh token: {_token.RefreshToken}");
@@ -251,6 +277,7 @@ namespace TeslaLib
             {
                 await TokenStore.UpdateTokenAsync(Email, newToken);
             }
+            return true;
         }
 
         // For a LoginToken that is close to expiry, this method will refresh the OAuth2 access token.  Returns a new LoginToken.
@@ -281,6 +308,9 @@ namespace TeslaLib
 
             var request = new RestRequest("vehicles");
             var response = Client.Get(request);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                UnauthorizedHandler(response);
 
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
@@ -324,6 +354,9 @@ namespace TeslaLib
             var request = new RestRequest("vehicles");
             var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                UnauthorizedHandler(response);
+
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
 
@@ -366,6 +399,9 @@ namespace TeslaLib
 
             var request = new RestRequest("products");
             var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                UnauthorizedHandler(response);
 
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
@@ -411,6 +447,10 @@ namespace TeslaLib
             var request = new RestRequest("products");
             var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
 
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                UnauthorizedHandler(response);
+
+            // I think almost all of these were actually returning unauthorized.  RestSharp may have been hiding these due to an internal NullReferenceException.
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
 
@@ -488,6 +528,51 @@ namespace TeslaLib
                 }
             }
             return sections.ToArray();
+        }
+
+        internal void UnauthorizedHandler(IRestResponse response)
+        {
+            bool successfullyRefreshedToken = false;
+            try
+            {
+                successfullyRefreshedToken = RefreshLoginTokenAndUpdateTokenStoreAsync().Result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Refreshing Tesla login token and updating token store threw: " + e);
+            }
+
+            Logger.WriteLine("Tesla login failed for account {0}. Did we successfully update the login token? {1}", Email, successfullyRefreshedToken);
+
+            ReportUnauthorizedAccess(response, successfullyRefreshedToken);
+        }
+
+        internal static void ReportUnauthorizedAccess(IRestResponse response, bool successfullyRefreshedToken)
+        {
+            var errorParameter = response.Headers.Where(p => p.Value != null && p.Value.ToString().Contains("error_description")).FirstOrDefault();
+            String errorDescription = errorParameter.Value.ToString();
+            String errorMsg = null;
+            if (errorParameter != null)
+            {
+                int errDescIndex = errorDescription.IndexOf("error_description");
+                if (errDescIndex > 0)
+                {
+                    int firstQuote = errorDescription.IndexOf('\"', errDescIndex + 10);
+                    int secondQuote = errorDescription.IndexOf('\"', firstQuote + 1);
+                    errorMsg = errorDescription.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
+                }
+            }
+
+            String msg = "Tesla authorization error.  ";
+            if (successfullyRefreshedToken)
+                msg += "Try again.";
+            else {
+                msg += "Did your password change?";
+                if (errorMsg != null)
+                    msg += "  " + errorMsg;
+            }
+
+            throw new SecurityException(msg);
         }
     }
 }

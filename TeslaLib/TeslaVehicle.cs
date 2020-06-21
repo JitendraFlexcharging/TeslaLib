@@ -95,6 +95,9 @@ namespace TeslaLib
 
         private void ReportKnownErrors(IRestResponse response)
         {
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                TeslaClient.ReportUnauthorizedAccess(response, false);
+
             if (response.StatusCode == HttpStatusCode.RequestTimeout)
             {
                 // An example
@@ -425,6 +428,9 @@ namespace TeslaLib
 
         private T ParseResult<T>(IRestResponse response)
         {
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                TeslaClient.ReportUnauthorizedAccess(response, false);
+
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
 
