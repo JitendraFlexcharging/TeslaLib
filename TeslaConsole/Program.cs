@@ -41,14 +41,25 @@ namespace TeslaConsole
             foreach (TeslaVehicle car in vehicles)
             {
                 Console.WriteLine(car.DisplayName + "   VIN: " + car.Vin + "  Model refresh number: "+car.Options.ModelRefreshNumber);
-                Console.WriteLine("Is mobile access enabled?  {0}", car.LoadMobileEnabledStatus());
                 Console.WriteLine("Car state: {0}", car.State);
-                if (car.State != TeslaLib.Models.VehicleState.Online)
+
+                TimeSpan maxWakeupTime = TimeSpan.FromSeconds(30);
+                DateTimeOffset startWaking = DateTimeOffset.Now;
+                var newState = car.State;
+                while (newState == TeslaLib.Models.VehicleState.Asleep || newState == TeslaLib.Models.VehicleState.Offline)
                 {
                     Console.Write("Waking up...  ");
-                    var newState = car.WakeUp();
+                    newState = car.WakeUp();
                     Console.WriteLine("WakeUp returned.  New vehicle state: {0}", newState);
+                    Thread.Sleep(2000);
+                    if (DateTimeOffset.Now - startWaking > maxWakeupTime)
+                    {
+                        Console.WriteLine("Giving up on waking up.");
+                        break;
+                    }
                 }
+
+                Console.WriteLine("Is mobile access enabled?  {0}", car.LoadMobileEnabledStatus());
 
                 var vehicleState = car.LoadVehicleStateStatus();
                 if (vehicleState == null)
@@ -61,7 +72,7 @@ namespace TeslaConsole
                         vehicleState.SentryModeAvailable, vehicleState.SentryMode);
                 }
 
-                Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion, vehicleState.CarVersion);
+                Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion.GetValueOrDefault(), vehicleState.CarVersion);
 
                 var vehicleConfig = car.LoadVehicleConfig();
                 Console.WriteLine("From VehicleConfig, Car type: {0}  special type: {1}  trim badging: {2}", vehicleConfig.CarType, 

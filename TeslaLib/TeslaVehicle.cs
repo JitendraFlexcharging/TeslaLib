@@ -60,8 +60,9 @@ namespace TeslaLib
         [JsonProperty(PropertyName = "calendar_enabled")]
         public bool CalendarEnabled { get; set; }
 
+        // As of June ~29th-ish of 2020, this started returning null temporarily.  Bug in Tesla's servers?  But we shouldn't fail as a result.
         [JsonProperty(PropertyName = "api_version")]
-        public float ApiVersion { get; set; }
+        public float? ApiVersion { get; set; }
 
         [JsonIgnore]
         public RestClient Client { get; set; }
