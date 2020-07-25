@@ -450,7 +450,7 @@ namespace TeslaLib
                 // Hack - if we have an enum we can't deal with, print something out...  But we also can't not fail.
                 if (e.Message.StartsWith("Error converting value "))
                 {
-                    TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e);
+                    TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e + "\r\nBad TeslaLib JSON content: "+response.Content);
                 }
                 throw;
             }

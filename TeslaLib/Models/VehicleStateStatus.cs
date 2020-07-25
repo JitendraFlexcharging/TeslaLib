@@ -37,6 +37,18 @@ namespace TeslaLib.Models
     //
     // As of March 2020, the software update data structure changed:
     // "software_update":{"download_perc":0,"expected_duration_sec":2700,"install_perc":1,"status":"","version":""},
+    // 
+    // API version 8, July 2020, Model X:
+    // {"response":{"api_version":8,"autopark_state_v2":"standby","autopark_style":"standard","calendar_supported":true,
+    // "car_version":"2020.20.12 d2c8a3e110f4","center_display_state":0,"df":0,"dr":0,"fd_window":2,"fp_window":0,"ft":16,
+    // "homelink_device_count":null,"homelink_nearby":null,"is_user_present":false,"last_autopark_error":"no_error","locked":false,
+    // "media_state":{"remote_control_enabled":true},"notifications_supported":true,"odometer":68727.222216,"parsed_calendar_supported":true,
+    // "pf":0,"pr":0,"rd_window":0,"remote_start":null,"remote_start_enabled":true,"remote_start_supported":true,"rp_window":0,"rt":32,
+    // "sentry_mode":false,"sentry_mode_available":true,"smart_summon_available":true,"software_update":{"download_perc":53,"expected_duration_sec":2700,
+    // "install_perc":3,"status":"downloading","version":"2020.20.17"},"speed_limit_mode":{"active":false,"current_limit_mph":50.0,
+    // "max_limit_mph":90,"min_limit_mph":50,"pin_code_set":false},"summon_standby_mode_enabled":true,"timestamp":1595713699831,"valet_mode":false,
+    // "valet_pin_needed":true,"vehicle_name":"The X"}}
+    // However Locked came back as null for some reason.  (Maybe a throttling related thing.)
     public class VehicleStateStatus
     {
         [JsonProperty(PropertyName = "df")]
@@ -64,7 +76,7 @@ namespace TeslaLib.Models
         public string CarVersion { get; set; }
 
         [JsonProperty(PropertyName = "locked")]
-        public bool IsLocked { get; set; }
+        public bool? IsLocked { get; set; }
 
         [JsonProperty(PropertyName = "sun_roof_installed")]
         public bool HasPanoramicRoof { get; set; }
