@@ -131,10 +131,10 @@ namespace TeslaLib.Models
         public bool? IsBatteryHeaterOn { get; set; }
 
         [JsonProperty(PropertyName = "battery_level")]
-        public int BatteryLevel { get; set; }
+        public int? BatteryLevel { get; set; }
 
         [JsonProperty(PropertyName = "battery_range")]
-        public double BatteryRange { get; set; }
+        public double? BatteryRange { get; set; }
 
         [JsonProperty(PropertyName = "charge_enable_request")]
         public bool IsChargeEnableRequest { get; set; }
@@ -180,13 +180,13 @@ namespace TeslaLib.Models
         public int? ChargerVoltage { get; set; }           // null when a car is starting to charge.
 
         [JsonProperty(PropertyName = "est_battery_range")]
-        public double EstimatedBatteryRange { get; set; }
+        public double? EstimatedBatteryRange { get; set; }
 
         [JsonProperty(PropertyName = "fast_charger_present")]
         public bool? IsUsingSupercharger { get; set; }
 
         [JsonProperty(PropertyName = "ideal_battery_range")]
-        public double IdealBatteryRange { get; set; }
+        public double? IdealBatteryRange { get; set; }
 
         [JsonProperty(PropertyName = "max_range_charge_counter")]
         public int? MaxRangeChargeCounter { get; set; }
