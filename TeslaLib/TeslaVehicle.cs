@@ -195,12 +195,14 @@ namespace TeslaLib
             }
             catch(JsonReaderException e)
             {
+                ReportKnownErrors(response);
+
                 if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
                     throw new TeslaServerException();
 
                 // Every once in a while, WakeUp will throw a JsonReaderException.  Let's see why.
                 e.Data["SerializedResponse"] = response.Content;
-                TeslaClient.Logger.WriteLine("Wakeup failed to parse results.  JSON: \"" + json + "\"");
+                TeslaClient.Logger.WriteLine("Wakeup failed to parse results.  response: \"" + response.Content + "\"");
                 throw;
             }
 
