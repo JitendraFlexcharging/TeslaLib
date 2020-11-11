@@ -7,10 +7,13 @@ namespace TeslaConsole
 {
     public class Program
     {
+        private const String TESLA_CLIENT_ID = "e4a9949fcfa04068f59abb5a658f2bac0a3428e4652315490b659d5ab3f35a9e";
+        private const String TESLA_CLIENT_SECRET = "c75f14bbadc8bee3a7594412c31416f8300256d7668ea7e6e7f06727bfb9d220";
+
         public static void Main(string[] args)
         {
-            string clientId = "";
-            string clientSecret = "";
+            string clientId = TESLA_CLIENT_ID;
+            string clientSecret = TESLA_CLIENT_SECRET;
 
             string email = "";
             string password = "";
@@ -22,8 +25,14 @@ namespace TeslaConsole
             // If we have logged in previously with the same email address, then we can use this method and refresh tokens,
             // assuming the refresh token hasn't expired.
             //client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
-            client.LoginUsingTokenStoreAsync(password).Wait();
+            //client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
+            
+            
+            Console.Write("Enter Tesla multi-factor authentication code --> ");
+            String mfaCode = Console.ReadLine().Trim();
+            client.LoginWithMultiFactorAuthenticationCodeAsync(password, mfaCode).Wait();
+            
 
             //client.GetAllProductsAsync(CancellationToken.None).Wait();
             List<EnergySite> energySites = client.GetEnergySitesAsync(CancellationToken.None).Result;
@@ -70,9 +79,8 @@ namespace TeslaConsole
                     Console.WriteLine(" Odometer: {0}", vehicleState.Odometer);
                     Console.WriteLine(" Sentry Mode available: {0}  Sentry mode on: {1}", 
                         vehicleState.SentryModeAvailable, vehicleState.SentryMode);
+                    Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion.GetValueOrDefault(), vehicleState.CarVersion);
                 }
-
-                Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion.GetValueOrDefault(), vehicleState.CarVersion);
 
                 var vehicleConfig = car.LoadVehicleConfig();
                 Console.WriteLine("From VehicleConfig, Car type: {0}  special type: {1}  trim badging: {2}", vehicleConfig.CarType, 
@@ -83,7 +91,7 @@ namespace TeslaConsole
                 Console.WriteLine("Wheels: {0}", vehicleConfig.WheelType);
 
                 var chargeState = car.LoadChargeStateStatus();
-                Console.WriteLine($" State of charge:  {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
+                Console.WriteLine($" State of charge: {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
                 Console.WriteLine($" Charging state: {(chargeState.ChargingState.HasValue ? chargeState.ChargingState.Value.ToString() : "unknown")}");
                 Console.WriteLine($"  Time until full charge: {chargeState.TimeUntilFullCharge} hours ({60*chargeState.TimeUntilFullCharge} minutes)  Usable battery level: {chargeState.UsableBatteryLevel}%");
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}");
