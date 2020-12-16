@@ -46,6 +46,7 @@ namespace TeslaLib
 
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
         internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
+        internal const String RetryLaterMessage = "Retry later";
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
         {

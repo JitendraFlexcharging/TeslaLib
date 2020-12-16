@@ -122,6 +122,14 @@ namespace TeslaLib
                 TeslaClient.Logger.WriteLine("Tesla account for car {0} named {1} was throttled by Tesla.  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
                 throw throttled;
             }
+
+            if (response.Content == TeslaClient.RetryLaterMessage)
+            {
+                var throttled = new TeslaThrottlingException();
+                throttled.Data["StatusCode"] = response.StatusCode;
+                TeslaClient.Logger.WriteLine("Tesla account for car {0} named {1} said we should retry later.  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
+                throw throttled;
+            }
         }
 
         public ChargeStateStatus LoadChargeStateStatus()
