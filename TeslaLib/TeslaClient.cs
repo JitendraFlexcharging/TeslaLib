@@ -500,7 +500,7 @@ private func challenge(forVerifier verifier: String) -> String {
             LoginToken newToken = await RefreshLoginTokenAsync(_token);
             if (newToken == null || newToken.AccessToken == null)
             {
-                Console.WriteLine("Refreshing the login token failed for {0}", Email);
+                Logger.WriteLine("TeslaLib: Refreshing the login token failed for {0}", Email);
                 return false;
             }
 
