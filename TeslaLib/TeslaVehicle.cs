@@ -123,13 +123,15 @@ namespace TeslaLib
                 throw throttled;
             }
 
-            if (response.Content == TeslaClient.RetryLaterMessage)
+            if (response.StatusCode == HttpStatusCode.TooManyRequests && response.Content == TeslaClient.RetryLaterMessage)
             {
                 var throttled = new TeslaThrottlingException();
                 throttled.Data["StatusCode"] = response.StatusCode;
                 TeslaClient.Logger.WriteLine("Tesla account for car {0} named {1} said we should retry later.  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
                 throw throttled;
             }
+
+            TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error.  Status code: {0}  Response content: \"{1}\"  Content length: {2}", response.StatusCode, response.Content, response.Content.Length);
         }
 
         public ChargeStateStatus LoadChargeStateStatus()
@@ -461,6 +463,19 @@ namespace TeslaLib
                 if (e.Message.StartsWith("Error converting value "))
                 {
                     TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e + "\r\nBad TeslaLib JSON content: "+response.Content);
+                }
+                throw;
+            }
+            catch (JsonReaderException e)
+            {
+                ReportKnownErrors(response);
+
+                e.Data["SerializedResponse"] = response.Content;
+
+                // Hack - if we have an enum we can't deal with, print something out...  But we also can't not fail.
+                if (e.Message.StartsWith("Error converting value "))
+                {
+                    TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  " + e + "\r\nBad TeslaLib JSON content: " + response.Content);
                 }
                 throw;
             }
