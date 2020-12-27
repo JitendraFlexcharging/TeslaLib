@@ -360,7 +360,10 @@ namespace TeslaLib.Models
 
                         case "ID":
                             InteriorDecor = Extensions.ToEnum<InteriorDecor>(value2);
-                            break;
+                            continue;
+                        case "IL":
+                            // Interior lighting - not used currently
+                            continue;
                         case "TR":
                             // Tolerate "TRA1"
                             int seatConfiguration = 0;
@@ -430,7 +433,7 @@ namespace TeslaLib.Models
                             break;
                         case "PS":
                             HasParcelShelf = int.Parse(value2) > 0;
-                            break;
+                            continue;
                         case "AD":
                             // AD15 is J1772.
                             break;
