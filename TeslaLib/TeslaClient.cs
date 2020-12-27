@@ -30,6 +30,7 @@ namespace TeslaLib
 
         public const string LoginUrl = "https://owner-api.teslamotors.com/oauth/";
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
+        public const string StreamingUrl = "wss://streaming.vn.teslamotors.com/streaming/";
 
         // Multi-factor Authentication enabled URLs
         public const string OAuthAuthorizeUrlMFA = "https://auth.tesla.com/oauth2/v3/authorize";
@@ -705,6 +706,15 @@ private func challenge(forVerifier verifier: String) -> String {
                     {
                         EnergySite energySite = JsonConvert.DeserializeObject<EnergySite>(section);
                         data.Add(energySite);
+                    }
+                    else if (section.Contains("\"vin\":"))
+                    {
+                        // This is a car.  Skip
+                    }
+                    else
+                    {
+                        Logger.WriteLine("Got a section that wasn't a vehicle nor an energy site.  Section: {0}", section);
+                        Console.WriteLine("Got a section that wasn't a vehicle nor an energy site.  Section: {0}", section);
                     }
                 }
                 data.ForEach(x => x.Client = Client);

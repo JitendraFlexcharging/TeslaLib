@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using TeslaLib;
+using TeslaLib.Models;
 
 namespace TeslaConsole
 {
@@ -28,11 +29,11 @@ namespace TeslaConsole
             //client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
             
-            
+
             Console.Write("Enter Tesla multi-factor authentication code --> ");
             String mfaCode = Console.ReadLine().Trim();
             client.LoginWithMultiFactorAuthenticationCodeAsync(password, mfaCode).Wait();
-            
+
 
             //client.GetAllProductsAsync(CancellationToken.None).Wait();
             List<EnergySite> energySites = client.GetEnergySitesAsync(CancellationToken.None).Result;
@@ -42,6 +43,19 @@ namespace TeslaConsole
                 foreach(EnergySite energySite in energySites)
                 {
                     Console.WriteLine($"Energy site name: {energySite.SiteName}  SoC: {energySite.StateOfCharge.ToString("0.0")}%  Power: {energySite.BatteryPower}  Energy left: {energySite.EnergyLeft.ToString("0")} / {energySite.TotalPackEnergy}");
+                    //Console.WriteLine($"Site status: {energySite.GetEnergySiteStatus()}  Configuration: {energySite.GetSiteConfiguration()}");
+                    EnergySiteData liveStatus = energySite.GetLiveStatus();
+                    Console.WriteLine($"Live status -  Home: {liveStatus.LoadPower}  Solar: {liveStatus.SolarPower}  Battery: {liveStatus.BatteryPower}  Grid: {liveStatus.GridPower}");
+                    var configuration = energySite.GetSiteConfiguration();
+                    Console.WriteLine($"Configuration - Mode: {configuration.DefaultRealMode}  Site Name: {configuration.SiteName}");
+                    var settings = configuration.UserSettings;
+                    Console.WriteLine($"User settings - Storm mode enabled: {settings.StormModeEnabled}  Breaker alert: {settings.BreakerAlertEnabled}  Sync grid alert: {settings.SyncGridAlertEnabled}");
+                    var touSettings = configuration.TouSettings;
+                    Console.WriteLine($"TOU settings - Optimization strategy: {touSettings.OptimizationStrategy}  Number of schedule items: {touSettings.Schedule.Count}");
+                    Console.WriteLine($"Installation time zone: {configuration.InstallationTimeZone}");
+                    Console.WriteLine($"Nameplate Energy: {configuration.NameplateEnergy}  Nameplate Power: {configuration.NameplatePower}");
+                    Console.WriteLine($"History: {energySite.GetHistory()}");
+                    Console.WriteLine($"Calendar History: {energySite.GetCalendarHistory()}");
                 }
             }
 
