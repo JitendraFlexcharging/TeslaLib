@@ -84,6 +84,7 @@ namespace TeslaLib
                 if (expirationTimeFromNow.TotalSeconds < 0)
                 {
                     // If it expired, we need a new token.  Not clear that the refresh token will work.
+                    Logger.WriteLine("TeslaLib login token for {0} expired.  UTC expiry time: {1}", Email, token.ExpiresUtc);
                     token = null;
                 }
                 else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
@@ -123,6 +124,7 @@ namespace TeslaLib
                 }
                 catch (Exception e)
                 {
+                    Logger.WriteLine("TeslaLib LoginUsingTokenStoreAsync hit an exception when trying to load vehicles, in an effort to verify our LoginToken was good.  " + e);
                     token = null;
                 }
             }
@@ -239,6 +241,9 @@ namespace TeslaLib
             if (response.ResponseStatus == ResponseStatus.Error || response.ResponseStatus == ResponseStatus.TimedOut ||
                 response.ResponseStatus == ResponseStatus.Aborted)
             {
+                HandleKnownFailures(response);
+
+                Logger.WriteLine("TeslaLib - TeslaClient.GetLoginTokenAsync got back a response type of {0}  Exception stack before throwing: {1}", response.ResponseStatus, response.ErrorException.StackTrace);
                 throw response.ErrorException;
             }
             var token = response.Data;
@@ -535,7 +540,15 @@ private func challenge(forVerifier verifier: String) -> String {
                 refresh_token = loginToken.RefreshToken
             });
 
-            var newToken = await loginClient.PostAsync<LoginToken>(request);
+            var response = await loginClient.ExecutePostAsync<LoginToken>(request);
+
+            if (response.ResponseStatus == ResponseStatus.Error)
+            {
+                HandleKnownFailures(response);
+                throw response.ErrorException;
+            }
+
+            var newToken = response.Data;
             return newToken;
         }
 
