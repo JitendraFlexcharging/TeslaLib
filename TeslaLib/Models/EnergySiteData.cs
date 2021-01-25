@@ -33,7 +33,7 @@ namespace TeslaLib.Models
         /// Looks like this is in Watts
         /// </summary>
         [JsonProperty(PropertyName = "battery_power")]
-        public int BatteryPower { get; set; }
+        public double BatteryPower { get; set; }
 
         /// <summary>
         /// Energy consumption at the site
@@ -57,13 +57,13 @@ namespace TeslaLib.Models
         /// Power in Watts(?)
         /// </summary>
         [JsonProperty(PropertyName = "grid_power")]
-        public int GridPower { get; set; }
+        public double GridPower { get; set; }
 
         [JsonProperty(PropertyName = "grid_services_power")]
-        public int GridServicesPower { get; set; }
+        public double GridServicesPower { get; set; }
 
         [JsonProperty(PropertyName = "generator_power")]
-        public int GeneratorPower { get; set; }
+        public double GeneratorPower { get; set; }
 
         [JsonProperty(PropertyName = "storm_mode_active")]
         public bool StormModeActive { get; set; }
