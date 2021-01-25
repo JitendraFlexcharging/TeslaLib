@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Title>TeslaLib</Title>
     <PackageId>TeslaLib</PackageId>
     <Authors>Raz Friman, Brian Grunkemeyer</Authors>
@@ -12,7 +12,7 @@
     <Description>Tesla vehicle C# API Implementation</Description>
     <Summary>Tesla Model S C# API Implementation</Summary>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <Copyright>Copyright 2018, 2019, 2020</Copyright>
+    <Copyright>Copyright 2018, 2019, 2020, 2021</Copyright>
     <PackageTags>Tesla Model S X 3 ModelS ModelX Model3 API C# Vehicle Remote Wrappers</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/briangru/TeslaLib/</RepositoryUrl>
