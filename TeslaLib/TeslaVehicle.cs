@@ -131,6 +131,14 @@ namespace TeslaLib
                 throw throttled;
             }
 
+            if (response.StatusCode == (HttpStatusCode)444 && response.Content == TeslaClient.BlockedMessage)
+            {
+                var blocked = new TeslaBlockedException();
+                blocked.Data["StatusCode"] = response.StatusCode;
+                TeslaClient.Logger.WriteLine("Tesla server blocked access for car {0} named {1}.  Retry later, maybe?  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
+                throw blocked;
+            }
+
             TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error.  Status code: {0}  Response content: \"{1}\"  Content length: {2}", response.StatusCode, response.Content, response.Content.Length);
         }
 

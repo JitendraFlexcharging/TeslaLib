@@ -48,6 +48,7 @@ namespace TeslaLib
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
         internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
         internal const String RetryLaterMessage = "Retry later";
+        internal const String BlockedMessage = "Blocked";
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
         {
@@ -561,13 +562,7 @@ private func challenge(forVerifier verifier: String) -> String {
             }
             catch (Exception e)
             {
-                if (response.Content == ThrottlingMessage)
-                {
-                    var throttled = new TeslaThrottlingException();
-                    throttled.Data["StatusCode"] = response.StatusCode;
-                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
-                    throw throttled;
-                }
+                HandleKnownFailures(response);
 
                 TeslaClient.Logger.WriteLine("TeslaClient.LoadVehicles failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
@@ -606,13 +601,7 @@ private func challenge(forVerifier verifier: String) -> String {
             }
             catch (Exception e)
             {
-                if (response.Content == ThrottlingMessage)
-                {
-                    var throttled = new TeslaThrottlingException();
-                    throttled.Data["StatusCode"] = response.StatusCode;
-                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
-                    throw throttled;
-                }
+                HandleKnownFailures(response);
 
                 TeslaClient.Logger.WriteLine("TeslaClient.LoadVehiclesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
@@ -653,13 +642,7 @@ private func challenge(forVerifier verifier: String) -> String {
             }
             catch (Exception e)
             {
-                if (response.Content == ThrottlingMessage)
-                {
-                    var throttled = new TeslaThrottlingException();
-                    throttled.Data["StatusCode"] = response.StatusCode;
-                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
-                    throw throttled;
-                }
+                HandleKnownFailures(response);
 
                 TeslaClient.Logger.WriteLine("TeslaClient.GetAllProductsAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
@@ -721,13 +704,7 @@ private func challenge(forVerifier verifier: String) -> String {
             }
             catch (Exception e)
             {
-                if (response.Content == ThrottlingMessage)
-                {
-                    var throttled = new TeslaThrottlingException();
-                    throttled.Data["StatusCode"] = response.StatusCode;
-                    TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
-                    throw throttled;
-                }
+                HandleKnownFailures(response);
 
                 TeslaClient.Logger.WriteLine("TeslaClient.GetEnergySitesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
                 if (response.Content.Contains(InternalServerErrorMessage))
@@ -741,6 +718,25 @@ private func challenge(forVerifier verifier: String) -> String {
             }
 
             return data;
+        }
+
+        private void HandleKnownFailures(IRestResponse response)
+        {
+            if (response.Content == ThrottlingMessage)
+            {
+                var throttled = new TeslaThrottlingException();
+                throttled.Data["StatusCode"] = response.StatusCode;
+                TeslaClient.Logger.WriteLine("Tesla account {0} was throttled by Tesla.  StatusCode: {1}", this.Email, response.StatusCode);
+                throw throttled;
+            }
+
+            if (response.StatusCode == (HttpStatusCode)444 && response.Content == TeslaClient.BlockedMessage)
+            {
+                var blocked = new TeslaBlockedException();
+                blocked.Data["StatusCode"] = response.StatusCode;
+                TeslaClient.Logger.WriteLine("Tesla server blocked access for Tesla account {0}.  Retry later, maybe?  StatusCode: {1}", this.Email, response.StatusCode);
+                throw blocked;
+            }
         }
 
         private static String[] JsonSplit(String str)
