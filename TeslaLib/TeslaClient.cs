@@ -747,7 +747,7 @@ private func challenge(forVerifier verifier: String) -> String {
             {
                 var blocked = new TeslaBlockedException();
                 blocked.Data["StatusCode"] = response.StatusCode;
-                TeslaClient.Logger.WriteLine("Tesla server blocked access for Tesla account {0}.  Retry later, maybe?  StatusCode: {1}", this.Email, response.StatusCode);
+                TeslaClient.Logger.WriteLine("Tesla server blocked access from your machine when accessing Tesla account {0}.  Retry later, maybe?  StatusCode: {1}", this.Email, response.StatusCode);
                 throw blocked;
             }
         }
@@ -799,10 +799,10 @@ private func challenge(forVerifier verifier: String) -> String {
 
             Logger.WriteLine("Tesla login failed for account {0}. Did we successfully update the login token? {1}", Email, successfullyRefreshedToken);
 
-            ReportUnauthorizedAccess(response, successfullyRefreshedToken);
+            ReportUnauthorizedAccess(response, successfullyRefreshedToken, Email);
         }
 
-        internal static void ReportUnauthorizedAccess(IRestResponse response, bool successfullyRefreshedToken)
+        internal static void ReportUnauthorizedAccess(IRestResponse response, bool successfullyRefreshedToken, String accountName)
         {
             var errorParameter = response.Headers.Where(p => p.Value != null && p.Value.ToString().Contains("error_description")).FirstOrDefault();
             String errorDescription = errorParameter.Value.ToString();
@@ -818,7 +818,7 @@ private func challenge(forVerifier verifier: String) -> String {
                 }
             }
 
-            String msg = "Tesla authorization error.  ";
+            String msg = (accountName == null) ? "Tesla authorization error.  " : "Tesla authorization error for account " + accountName + ".  ";
             if (successfullyRefreshedToken)
                 msg += "Try again.";
             else {

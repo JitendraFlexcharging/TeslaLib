@@ -97,7 +97,7 @@ namespace TeslaLib
         private void ReportKnownErrors(IRestResponse response)
         {
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                TeslaClient.ReportUnauthorizedAccess(response, false);
+                TeslaClient.ReportUnauthorizedAccess(response, false, null);
 
             if (response.StatusCode == HttpStatusCode.RequestTimeout)
             {
@@ -135,7 +135,7 @@ namespace TeslaLib
             {
                 var blocked = new TeslaBlockedException();
                 blocked.Data["StatusCode"] = response.StatusCode;
-                TeslaClient.Logger.WriteLine("Tesla server blocked access for car {0} named {1}.  Retry later, maybe?  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
+                TeslaClient.Logger.WriteLine("Tesla server blocked access to your machine when asking for car {0} named {1}.  Retry in an hour with the correct password?  StatusCode: {2}", Vin, DisplayName, response.StatusCode);
                 throw blocked;
             }
 
@@ -450,7 +450,7 @@ namespace TeslaLib
         private T ParseResult<T>(IRestResponse response)
         {
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                TeslaClient.ReportUnauthorizedAccess(response, false);
+                TeslaClient.ReportUnauthorizedAccess(response, false, null);
 
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
