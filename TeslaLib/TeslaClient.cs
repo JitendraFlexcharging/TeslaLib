@@ -147,6 +147,16 @@ namespace TeslaLib
                 if (TokenStore != null)
                     await TokenStore.AddTokenAsync(Email, token);
             }
+
+            if (!IsLoggedIn())
+            {
+                // We don't expect to hit this, unless we messed up error handling somewhere along the way, or Tesla returns a new error code we don't recognize.
+                TeslaAuthenticator auth = (Client != null) ? Client.Authenticator as TeslaAuthenticator : null;
+                String loginProblem = String.Format("TeslaLib LoginUsingTokenStoreAsync completed, did not throw, but IsLoggedIn returns false.  Email: {0}  Is client null? {1}  Is auth null? {2}  Access token: {3}  Was LoginToken null? {4}",
+                    Email, Client == null, auth == null, AccessToken, token == null);
+                Logger.WriteLine(loginProblem);
+                Console.WriteLine(loginProblem);
+            }
         }
 
         // This method relies solely on the IOAuthTokenStore to recover a valid OAuth2 token, using that and if needed refreshing it.
@@ -171,8 +181,9 @@ namespace TeslaLib
                     var newToken = await RefreshLoginTokenAsync(token);
                     if (newToken == null)
                     {
-                        await TokenStore.UpdateTokenAsync(Email, newToken);
-                        token = newToken;
+                        Logger.WriteLine("TeslaLib had an expired login token, tried refreshing it, and failed for account {0}", Email);
+                        await TokenStore.DeleteTokenAsync(Email);
+                        token = null;
                     }
                 }
                 else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
@@ -203,8 +214,20 @@ namespace TeslaLib
                 }
             }
 
+            if (!IsLoggedIn())
+            {
+                // We don't expect to hit this, unless we messed up error handling somewhere along the way, or Tesla returns a new error code we don't recognize.
+                TeslaAuthenticator auth = (Client != null) ? Client.Authenticator as TeslaAuthenticator : null;
+                String loginProblem = String.Format("TeslaLib LoginUsingTokenStoreWithoutPassword says IsLoggedIn returns false.  Email: {0}  Is client null? {1}  Is auth null? {2}  Access token: {3}  Was LoginToken null? {4}",
+                    Email, Client == null, auth == null, AccessToken, token == null);
+                Logger.WriteLine(loginProblem);
+                Console.WriteLine(loginProblem);
+            }
+
             if (token == null)
+            {
                 throw new SecurityException($"Cannot get a LoginToken for {Email}");
+            }
         }
 
         public async Task LoginAsync(string password) => SetToken(await GetLoginTokenAsync(password).ConfigureAwait(false));
@@ -234,12 +257,12 @@ namespace TeslaLib
             });
             var response = loginClient.Post<LoginToken>(request);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 throw new SecurityException($"Logging in failed for Tesla account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?  Multi-factor authentication enabled?");
             }
             if (response.ResponseStatus == ResponseStatus.Error || response.ResponseStatus == ResponseStatus.TimedOut ||
-                response.ResponseStatus == ResponseStatus.Aborted)
+                response.ResponseStatus == ResponseStatus.Aborted || response.StatusCode == HttpStatusCode.BadRequest)
             {
                 HandleKnownFailures(response);
 
@@ -542,7 +565,7 @@ private func challenge(forVerifier verifier: String) -> String {
 
             var response = await loginClient.ExecutePostAsync<LoginToken>(request);
 
-            if (response.ResponseStatus == ResponseStatus.Error)
+            if (response.ResponseStatus == ResponseStatus.Error || response.StatusCode == HttpStatusCode.BadRequest)
             {
                 HandleKnownFailures(response);
                 throw response.ErrorException;
@@ -749,6 +772,15 @@ private func challenge(forVerifier verifier: String) -> String {
                 blocked.Data["StatusCode"] = response.StatusCode;
                 TeslaClient.Logger.WriteLine("Tesla server blocked access from your machine when accessing Tesla account {0}.  Retry later, maybe?  StatusCode: {1}", this.Email, response.StatusCode);
                 throw blocked;
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                var badRequest = new InvalidOperationException("Tesla said this was a bad request");
+                badRequest.Data["StatusCode"] = response.StatusCode;
+                badRequest.Data["Response"] = response.Content;
+                TeslaClient.Logger.WriteLine("Tesla server said we made a bad request.  Response: {0}", response.Content);
+                throw badRequest;
             }
         }
 
