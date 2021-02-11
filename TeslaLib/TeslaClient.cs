@@ -33,6 +33,7 @@ namespace TeslaLib
         public const string StreamingUrl = "wss://streaming.vn.teslamotors.com/streaming/";
 
         // Multi-factor Authentication enabled URLs
+        // Read documentation here:  https://tesla-api.timdorr.com/api-basics/authentication
         public const string OAuthAuthorizeUrlMFA = "https://auth.tesla.com/oauth2/v3/authorize";
         public const string OAuthBaseUrl = "https://auth.tesla.com/oauth2/v3/";   // add "token" to the end
         public const string TeslaRedirectUrl = "https://auth.tesla.com/void/callback";  // Not what we want, but...
@@ -43,6 +44,7 @@ namespace TeslaLib
 
         private static IOAuthTokenStore TokenStore = null;
         // If we are within perhaps two weeks of our OAuth2 token expiring, renew the token.
+        // Tokens may last for 45 days.
         private static readonly TimeSpan TokenExpirationRenewalWindow = TimeSpan.FromDays(14);
 
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
@@ -317,26 +319,30 @@ namespace TeslaLib
             // Log in, getting a code.  Then exchange the code for an access token.
 
             // Log in
+            //String stateParam = "TestStateParameter"+DateTimeOffset.Now.Ticks;`
             String stateParam = CreateRandomState(10);
 
             var teslaOAuthClient = new RestClient(OAuthBaseUrl);
 
             var request = new RestRequest("authorize")
             {
-                RequestFormat = DataFormat.Json
+                RequestFormat = DataFormat.Json,
             };
+            // Does not seem to advance the cause at the moment.
+            //request.AddHeader("User agent", "TeslaLib library");
 
             /* Have to add in PKCE stuff too.
             let codeVerifier = self.verifier(forKey: kTeslaClientID)
             let codeChallenge = self.challenge(forVerifier: codeVerifier)
             */
             // Code verifier is a cryptographically strong random string A-Z, a-z, 0-9, and the punctuation characters -._~ (hyphen, period, underscore, and tilde), 
-            // between 43 and 128 characters long.  However, someone else suggested the verifier should use the Tesla client ID as a key.
-            //int verifierLength = 50;
-            //string codeVerifier = CreateCodeVerifier(verifierLength);
-            string codeVerifier = CodeVerifierFromKey(TeslaClientId);
+            // between 43 and 128 characters long.  Best in-progress Tesla documentation (as of Feb 2021) says they must 
+            // be 86 characters long.  Earlier documentaion said the verifier should be based on the Tesla client ID.
+            int codeVerifierLength = 86;
+            string codeVerifier = CreateCodeVerifier(codeVerifierLength);
+            //string codeVerifier = TeslaClientId;  // Using this gets us past "bad request", but fails.  "Specified value has invalid HTTP Header characters. (Parameter 'name')"
 
-            // code challenge is a (usually SHA256) hash of the code verifier, base64 URL encoded and possibly URL encoded.
+            // code challenge is a (usually SHA256) hash of the code verifier, base64 encoded and then URL encoded.
             string codeChallenge = GenerateCodeChallengeFromCodeVerifier(codeVerifier);
 
             // We need a variation that works with an email parameter...
@@ -345,15 +351,15 @@ namespace TeslaLib
             {
                 response_type = "code",
                 client_id = "ownerapi",
-                redirect_uri = TeslaRedirectUrl,
-                //scope = "openid email offline_access",    // Necessary so that the refresh token works right.
-                scope = "email",
-                state = stateParam,
                 code_challenge = codeChallenge,
                 code_challenge_method = "S256",
+                redirect_uri = TeslaRedirectUrl,
+                scope = "openid email offline_access",    // Necessary so that the refresh token works right.
+                state = stateParam,
+                //login_hint = Email   // optional
                 //locale = "en",
                 //prompt = "login"
-            }); ;
+            });
             var response = teslaOAuthClient.Post<String>(request);
 
             /* Log In to the Authorize URL.
@@ -371,7 +377,11 @@ namespace TeslaLib
 
             */
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            // This is more for our bugs than anything else.
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+                throw new InvalidOperationException(String.Format("TeslaLib made a bad request for Tesla account {0}", Email));
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 throw new SecurityException($"Logging in failed for Tesla account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?");
             }
@@ -481,13 +491,12 @@ private func challenge(forVerifier verifier: String) -> String {
 
         private static string GenerateCodeChallengeFromCodeVerifier(string codeVerifier)
         {
+            // Verify this implementation.  Consider cross-checking with Ruby's implementation.
             String codeChallengeBase64;
             var inputBytes = Encoding.UTF8.GetBytes(codeVerifier);
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            using (var sha256 = System.Security.Cryptography.SHA256.Create("SHA256"))
             {
-                sha256.Initialize();
-                sha256.TransformFinalBlock(inputBytes, 0, inputBytes.Length);
-                var outputBytes = sha256.Hash;
+                var outputBytes = sha256.ComputeHash(inputBytes);
                 codeChallengeBase64 = Convert.ToBase64String(outputBytes);
             }
             // Base64 strings have + and = in them and should be URL encoded.
