@@ -338,8 +338,10 @@ namespace TeslaLib
             // Code verifier is a cryptographically strong random string A-Z, a-z, 0-9, and the punctuation characters -._~ (hyphen, period, underscore, and tilde), 
             // between 43 and 128 characters long.  Best in-progress Tesla documentation (as of Feb 2021) says they must 
             // be 86 characters long.  Earlier documentaion said the verifier should be based on the Tesla client ID.
-            int codeVerifierLength = 86;
-            string codeVerifier = CreateCodeVerifier(codeVerifierLength);
+            // Someone clarified that this should be 64 characters, but we should Base64 encode it to get 86 chars.
+            int codeVerifierLength = 64;
+            String verifierRaw = CreateCodeVerifier(codeVerifierLength);
+            string codeVerifier = Convert.ToBase64String(Encoding.UTF8.GetBytes(verifierRaw));  // Should use a URL-safe Base64 encoded value (no "+" char, etc)
             //string codeVerifier = TeslaClientId;  // Using this gets us past "bad request", but fails.  "Specified value has invalid HTTP Header characters. (Parameter 'name')"
 
             // code challenge is a (usually SHA256) hash of the code verifier, base64 encoded and then URL encoded.
@@ -767,7 +769,7 @@ private func challenge(forVerifier verifier: String) -> String {
 
         private void HandleKnownFailures(IRestResponse response)
         {
-            if (response.Content == ThrottlingMessage)
+            if (response.Content == ThrottlingMessage || response.StatusCode == HttpStatusCode.TooManyRequests)
             {
                 var throttled = new TeslaThrottlingException();
                 throttled.Data["StatusCode"] = response.StatusCode;
