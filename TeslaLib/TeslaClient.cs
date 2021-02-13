@@ -319,8 +319,8 @@ namespace TeslaLib
             // Log in, getting a code.  Then exchange the code for an access token.
 
             // Log in
-            //String stateParam = "TestStateParameter"+DateTimeOffset.Now.Ticks;`
-            String stateParam = CreateRandomState(10);
+            //String stateParam = "TestStateParameter"+DateTimeOffset.Now.Ticks;
+            String stateParam = CreateRandomState(20);
 
             var teslaOAuthClient = new RestClient(OAuthBaseUrl);
 
@@ -328,8 +328,8 @@ namespace TeslaLib
             {
                 RequestFormat = DataFormat.Json,
             };
-            // Does not seem to advance the cause at the moment.
-            //request.AddHeader("User agent", "TeslaLib library");
+
+            request.AddHeader("User-Agent", "TeslaLib in .NET");
 
             /* Have to add in PKCE stuff too.
             let codeVerifier = self.verifier(forKey: kTeslaClientID)
@@ -338,10 +338,9 @@ namespace TeslaLib
             // Code verifier is a cryptographically strong random string A-Z, a-z, 0-9, and the punctuation characters -._~ (hyphen, period, underscore, and tilde), 
             // between 43 and 128 characters long.  Best in-progress Tesla documentation (as of Feb 2021) says they must 
             // be 86 characters long.  Earlier documentaion said the verifier should be based on the Tesla client ID.
-            // Someone clarified that this should be 64 characters, but we should Base64 encode it to get 86 chars.
+            // Someone clarified that this should be 64 characters, but we should Base64 encode it to get 86 chars.  However we don't send this across the wire.
             int codeVerifierLength = 64;
-            String verifierRaw = CreateCodeVerifier(codeVerifierLength);
-            string codeVerifier = Convert.ToBase64String(Encoding.UTF8.GetBytes(verifierRaw));  // Should use a URL-safe Base64 encoded value (no "+" char, etc)
+            string codeVerifier = CreateCodeVerifier(codeVerifierLength);
             //string codeVerifier = TeslaClientId;  // Using this gets us past "bad request", but fails.  "Specified value has invalid HTTP Header characters. (Parameter 'name')"
 
             // code challenge is a (usually SHA256) hash of the code verifier, base64 encoded and then URL encoded.
@@ -351,11 +350,11 @@ namespace TeslaLib
 
             request.AddJsonBody(new
             {
-                response_type = "code",
                 client_id = "ownerapi",
                 code_challenge = codeChallenge,
                 code_challenge_method = "S256",
                 redirect_uri = TeslaRedirectUrl,
+                response_type = "code",
                 scope = "openid email offline_access",    // Necessary so that the refresh token works right.
                 state = stateParam,
                 //login_hint = Email   // optional
@@ -501,9 +500,19 @@ private func challenge(forVerifier verifier: String) -> String {
                 var outputBytes = sha256.ComputeHash(inputBytes);
                 codeChallengeBase64 = Convert.ToBase64String(outputBytes);
             }
-            // Base64 strings have + and = in them and should be URL encoded.
-            String codeChallenge = Uri.EscapeDataString(codeChallengeBase64);
+            // Base64 strings have + and = in them and should be URL encoded.  This seems to be different from URL escaping as .NET's API defines it.
+            String codeChallenge = UrlSafeEncode(codeChallengeBase64);
             return codeChallenge;
+        }
+
+        private static string UrlSafeEncode(String src)
+        {
+            // Ruby defines this method:  urlsafe_encode64(bin, padding: true)
+            // Returns the Base64-encoded version of bin.  This method complies with “Base 64 Encoding with URL and Filename Safe Alphabet” in RFC 4648.
+            // The alphabet uses ‘-’ instead of ‘+’ and ‘_’ instead of ‘/’. Note that the result can still contain ‘=’. You can remove the padding 
+            // by setting padding as false.
+            string str = src.Replace('+', '-').Replace('/', '_');
+            return str;
         }
 
         internal void SetToken(LoginToken token)
