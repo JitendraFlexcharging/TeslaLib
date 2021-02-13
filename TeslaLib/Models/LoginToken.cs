@@ -32,13 +32,16 @@ namespace TeslaLib.Models
         /// Gets the expiry duration of the <see cref="AccessToken"/>.
         /// </summary>
         [JsonIgnore]
-        public TimeSpan ExpiresInTimespan => TimeSpan.FromSeconds(ExpiresIn);
+        public TimeSpan ExpiresInTimespan {
+            get { return TimeSpan.FromSeconds(ExpiresIn); }
+            set { ExpiresIn = UnixTimeConverter.ToUnixTimeSpan(value); }
+        }
 
         /// <summary>
         /// Gets the UTC <see cref="DateTime"/> when the <see cref="AccessToken"/> expires.
         /// </summary>
         [JsonIgnore]
-        public DateTime ExpiresUtc => UnixTimeConverter.ToDateTime(CreatedAt + ExpiresIn);
+        public DateTime ExpiresUtc => UnixTimeConverter.FromUnixTimeStamp(CreatedAt + ExpiresIn);
 
         /// <summary>
         /// Gets the Epoch timestamp when the <see cref="AccessToken"/> was issued.
@@ -50,7 +53,11 @@ namespace TeslaLib.Models
         /// Gets the UTC <see cref="DateTime"/> when the <see cref="AccessToken"/> was issued.
         /// </summary>
         [JsonIgnore]
-        public DateTime CreatedUtc => UnixTimeConverter.ToDateTime(CreatedAt);
+        public DateTime CreatedUtc
+        {
+            get { return UnixTimeConverter.FromUnixTimeStamp(CreatedAt); }
+            set { CreatedAt = UnixTimeConverter.ToUnixTimeStamp(value); }
+        }
 
         /// <summary>
         /// Gets the refresh token that can be used to acquire a new <see cref="AccessToken"/>.

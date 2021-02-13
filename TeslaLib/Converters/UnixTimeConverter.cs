@@ -13,6 +13,10 @@ namespace TeslaLib.Converters
 
         public static TimeSpan FromUnixTimeSpan(long unixTimeSpan) => TimeSpan.FromSeconds(unixTimeSpan);
 
-        public static DateTime ToDateTime(long unixTimestamp) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTimestamp);
+        public static long ToUnixTimeSpan(TimeSpan timeSpan) => (long)timeSpan.TotalSeconds;
+
+        public static DateTime FromUnixTimeStamp(long unixTimestamp) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTimestamp);
+
+        public static long ToUnixTimeStamp(DateTime dateTime) => (long) (dateTime - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
     }
 }
