@@ -13,6 +13,7 @@ using System.Net;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
+using TeslaAuth;
 
 namespace TeslaLib
 {
@@ -35,7 +36,7 @@ namespace TeslaLib
         // Multi-factor Authentication enabled URLs
         // Read documentation here:  https://tesla-api.timdorr.com/api-basics/authentication
         public const string OAuthAuthorizeUrlMFA = "https://auth.tesla.com/oauth2/v3/authorize";
-        public const string OAuthBaseUrl = "https://auth.tesla.com/oauth2/v3/";   // add "token" to the end
+        public const string OAuthBaseUrl = "https://auth.tesla.com/oauth2/v3";   // add "token" to the end
         public const string TeslaRedirectUrl = "https://auth.tesla.com/void/callback";  // Not what we want, but...
 
         public const string Version = "1.1.0";
@@ -51,6 +52,22 @@ namespace TeslaLib
         internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
         internal const String RetryLaterMessage = "Retry later";
         internal const String BlockedMessage = "Blocked";
+
+        static TeslaClient()
+        {
+            TeslaAuthHelper.MFACodeRequired += MFACodeRequiredHandler;
+            TeslaAuthHelper.MFACodeInvalid += MFACodeInvalidHandler;
+        }
+
+        private static void MFACodeInvalidHandler(object sender, Tuple<string, string> tuple)
+        {
+            throw new MultiFactorAuthenticationException(String.Format("MFA problem: {0}", tuple.Item2), tuple.Item1);
+        }
+
+        private static void MFACodeRequiredHandler(object sender, string email)
+        {
+            throw new MultiFactorAuthenticationException("Multi-factor authentication is required for user " + email, email);
+        }
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
         {
@@ -68,7 +85,7 @@ namespace TeslaLib
             set { TokenStore = value; }
         }
 
-        public async Task LoginUsingTokenStoreAsync(string password)
+        public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
@@ -92,7 +109,7 @@ namespace TeslaLib
                 else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
                 {
                     // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
-                    var newToken = await RefreshLoginTokenAsync(token);
+                    var newToken = await RefreshLoginTokenAsync(token, region);
                     if (TokenStore != null)
                     {
                         if (newToken == null)
@@ -135,7 +152,7 @@ namespace TeslaLib
             {
                 try
                 {
-                    token = await GetLoginTokenAsync(password).ConfigureAwait(false);
+                    token = await GetLoginTokenAsync(password, mfaCode, region).ConfigureAwait(false);
                 }
                 catch(SecurityException)
                 {
@@ -163,7 +180,7 @@ namespace TeslaLib
 
         // This method relies solely on the IOAuthTokenStore to recover a valid OAuth2 token, using that and if needed refreshing it.
         // It will throw a SecurityException if the token is expired and we have no alternatives.
-        public async Task LoginUsingTokenStoreWithoutPasswordAsync()
+        public async Task LoginUsingTokenStoreWithoutPasswordAsync(TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
             LoginToken token = null;
             if (TokenStore != null)
@@ -180,7 +197,7 @@ namespace TeslaLib
                     // If it expired, we need a new token.  Not clear whether the refresh token will work.
                     // Try using the refresh token anyways?  This should fail, but maybe it will work?
                     // Note:  This error code path has not been tested.
-                    var newToken = await RefreshLoginTokenAsync(token);
+                    var newToken = await RefreshLoginTokenAsync(token, region);
                     if (newToken == null)
                     {
                         Logger.WriteLine("TeslaLib had an expired login token, tried refreshing it, and failed for account {0}", Email);
@@ -191,7 +208,7 @@ namespace TeslaLib
                 else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
                 {
                     // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
-                    var newToken = await RefreshLoginTokenAsync(token);
+                    var newToken = await RefreshLoginTokenAsync(token, region);
                     if (TokenStore != null)
                     {
                         if (newToken == null)
@@ -232,287 +249,28 @@ namespace TeslaLib
             }
         }
 
-        public async Task LoginAsync(string password) => SetToken(await GetLoginTokenAsync(password).ConfigureAwait(false));
+        public async Task LoginAsync(string password, String mfaCode = null, TeslaAccountRegion region = TeslaAccountRegion.Unknown) =>
+            SetToken(await GetLoginTokenAsync(password, mfaCode, region).ConfigureAwait(false));
 
-        public async Task LoginWithMultiFactorAuthenticationCodeAsync(string password, string mfaCode)
+        private async Task<LoginToken> GetLoginTokenAsync(string password, string mfaCode, TeslaAccountRegion region)
         {
-            SetToken(await GetLoginTokenAsync(password, mfaCode).ConfigureAwait(false));
+            Tokens tokens = await TeslaAuthHelper.AuthenticateAsync(Email, password, mfaCode, region);
+
+            LoginToken loginToken = ConvertTeslaAuthTokensToLoginToken(tokens);
+
+            // @TODO: Verify that the TeslaAuthHelper code verifies the code challenge.
+
+            return loginToken;
         }
 
-
-        private async Task<LoginToken> GetLoginTokenAsync(string password)
+        private static LoginToken ConvertTeslaAuthTokensToLoginToken(Tokens tokens)
         {
-            var loginClient = new RestClient(LoginUrl);
-
-            var request = new RestRequest("token")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddJsonBody(new
-            {
-                grant_type = "password",
-                client_id = TeslaClientId,
-                client_secret = TeslaClientSecret,
-                email = Email,
-                password = password
-            });
-            var response = loginClient.Post<LoginToken>(request);
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                throw new SecurityException($"Logging in failed for Tesla account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?  Multi-factor authentication enabled?");
-            }
-            if (response.ResponseStatus == ResponseStatus.Error || response.ResponseStatus == ResponseStatus.TimedOut ||
-                response.ResponseStatus == ResponseStatus.Aborted || response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                HandleKnownFailures(response);
-
-                Logger.WriteLine("TeslaLib - TeslaClient.GetLoginTokenAsync got back a response type of {0}  Exception stack before throwing: {1}", response.ResponseStatus, response.ErrorException.StackTrace);
-                throw response.ErrorException;
-            }
-            var token = response.Data;
-            return token;
-        }
-
-        // Returns a hex string representing a random array of bytes.
-        private String CreateRandomState(int numBytes)
-        {
-            Random random = new Random((int)Environment.TickCount);
-            byte[] bytes = new byte[numBytes];
-            random.NextBytes(bytes);
-            StringBuilder sb = new StringBuilder(numBytes * 2);
-            foreach (byte b in bytes)
-                sb.Append(b.ToString("x"));
-            return sb.ToString();
-        }
-
-        private static char IntToPKCEChar(uint x)
-        {
-            if (x > (26 + 26 + 10 + 4))
-                throw new ArgumentOutOfRangeException("IntToPKCEChar failed - Number is too big");
-
-            if (x < 26)
-                return (char)('a' + x);
-            x -= 26;
-            if (x < 26)
-                return (char)('A' + x);
-            x -= 26;
-            if (x <= 10)
-                return (char)('0' + x);
-            x -= 10;
-            
-            switch(x)
-            {
-                case 0: return '-';
-                case 1: return '.';
-                case 2: return '_';
-                case 3: return '~';
-                default:
-                    throw new ArgumentOutOfRangeException("x", "Fell through switch in IntToPKCEChar");
-            }
-        }
-
-        private async Task<LoginToken> GetLoginTokenAsync(string password, string mfaCode)
-        {
-            // Looks like OAuth2 has an initiation URL to start the authorization check, then a separate call to get tokens.
-            // Log in, getting a code.  Then exchange the code for an access token.
-
-            // Log in
-            //String stateParam = "TestStateParameter"+DateTimeOffset.Now.Ticks;
-            String stateParam = CreateRandomState(20);
-
-            var teslaOAuthClient = new RestClient(OAuthBaseUrl);
-
-            var request = new RestRequest("authorize")
-            {
-                RequestFormat = DataFormat.Json,
-            };
-
-            request.AddHeader("User-Agent", "TeslaLib in .NET");
-
-            /* Have to add in PKCE stuff too.
-            let codeVerifier = self.verifier(forKey: kTeslaClientID)
-            let codeChallenge = self.challenge(forVerifier: codeVerifier)
-            */
-            // Code verifier is a cryptographically strong random string A-Z, a-z, 0-9, and the punctuation characters -._~ (hyphen, period, underscore, and tilde), 
-            // between 43 and 128 characters long.  Best in-progress Tesla documentation (as of Feb 2021) says they must 
-            // be 86 characters long.  Earlier documentaion said the verifier should be based on the Tesla client ID.
-            // Someone clarified that this should be 64 characters, but we should Base64 encode it to get 86 chars.  However we don't send this across the wire.
-            int codeVerifierLength = 64;
-            string codeVerifier = CreateCodeVerifier(codeVerifierLength);
-            //string codeVerifier = TeslaClientId;  // Using this gets us past "bad request", but fails.  "Specified value has invalid HTTP Header characters. (Parameter 'name')"
-
-            // code challenge is a (usually SHA256) hash of the code verifier, base64 encoded and then URL encoded.
-            string codeChallenge = GenerateCodeChallengeFromCodeVerifier(codeVerifier);
-
-            // We need a variation that works with an email parameter...
-
-            request.AddJsonBody(new
-            {
-                client_id = "ownerapi",
-                code_challenge = codeChallenge,
-                code_challenge_method = "S256",
-                redirect_uri = TeslaRedirectUrl,
-                response_type = "code",
-                scope = "openid email offline_access",    // Necessary so that the refresh token works right.
-                state = stateParam,
-                //login_hint = Email   // optional
-                //locale = "en",
-                //prompt = "login"
-            });
-            var response = teslaOAuthClient.Post<String>(request);
-
-            /* Log In to the Authorize URL.
-
-  $params = array(
-    'response_type' => 'code',
-    'client_id' => $githubClientID,
-    'redirect_uri' => $baseURL,    // This may be a URL we've registered when we created a client.  OR: "https://auth.tesla.com/void/callback"
-    'scope' => 'user public_repo',
-    'state' => $_SESSION['state']
-  );
-
-            // Real example
-            https://auth.tesla.com/oauth2/v3/authorize?client_id=ownerapi&code_challenge_method=S256&redirect_uri=https%3A%2F%2Fauth.tesla.com%2Fvoid%2Fcallback&locale=en&prompt=login&response_type=code&scope=email&state=xlni7Qb4ON540kwGBopz
-
-            */
-
-            // This is more for our bugs than anything else.
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-                throw new InvalidOperationException(String.Format("TeslaLib made a bad request for Tesla account {0}", Email));
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                throw new SecurityException($"Logging in failed for Tesla account {Email}: {response.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?");
-            }
-            if (response.ResponseStatus == ResponseStatus.Error || response.ResponseStatus == ResponseStatus.TimedOut ||
-                response.ResponseStatus == ResponseStatus.Aborted)
-            {
-                throw response.ErrorException;
-            }
-
-            // If we got back a code, then verify that the state parameter matches.
-            String code = response.Data;
-            if (response.Data != null)
-            {
-                // Is the state in the response data?
-                String returnedState = response.Data;
-                if (stateParam != returnedState)
-                    throw new InvalidOperationException("TeslaLib OAuth2 authorization failed with a bad response.  Expected to see our state parameter, but didn't.");
-            }
-
-            // Now exchange the code for an access token
-            // The documentation suggests a server app would use a redirect to some web site, do a request witha  response type of 'code', which returns an authorization code
-            // and it exchanges the authorization code for a token.
-            /*
-             *   // Exchange the auth code for an access token
-  $token = apiRequest($tokenURL, array(
-    'grant_type' => 'authorization_code',
-    'client_id' => $githubClientID,
-    'client_secret' => $githubClientSecret,
-    'redirect_uri' => $baseURL,
-    'code' => $_GET['code']
-  ));
-  $_SESSION['access_token'] = $token['access_token'];
-            */
-
-            var tokenRequest = new RestRequest("token")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddJsonBody(new
-            {
-                /*
-                grant_type = "password",
-                client_id = TeslaClientId,
-                client_secret = TeslaClientSecret,
-                email = Email,
-                password = password,
-                mfaCode = mfaCode,
-                */
-                grant_type = "authorization_code",
-                client_id = "ownerapi",
-                client_secret = TeslaClientSecret,
-                code = code,
-                mfaCode = mfaCode,
-            });
-            var tokenResponse = teslaOAuthClient.Post<LoginToken>(request);
-
-            if (tokenResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                throw new SecurityException($"Logging in failed for Tesla account {Email}: {tokenResponse.StatusDescription}.  Is your password correct?  Does your Tesla account allow mobile access?");
-            }
-            if (tokenResponse.ResponseStatus == ResponseStatus.Error || tokenResponse.ResponseStatus == ResponseStatus.TimedOut ||
-                tokenResponse.ResponseStatus == ResponseStatus.Aborted)
-            {
-                throw tokenResponse.ErrorException;
-            }
-            var token = tokenResponse.Data;
-            return token;
-        }
-
-        private static string CreateCodeVerifier(int verifierLength)
-        {
-            RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
-            byte[] randomBytes = new byte[verifierLength];
-            randomNumberGenerator.GetBytes(randomBytes);
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < verifierLength; i++)
-            {
-                uint randomNumber = ((uint)randomBytes[i]) % (26 + 26 + 10 + 4);
-                sb.Append(IntToPKCEChar(randomNumber));
-            }
-            String codeVerifier = sb.ToString();
-            return codeVerifier;
-        }
-
-        private static string CodeVerifierFromKey(String key)
-        {
-            string verifier = Convert.ToBase64String(Encoding.UTF8.GetBytes(key));
-            verifier = verifier.Replace('+', '-');
-            verifier = verifier.Replace('/', '_');
-            verifier = verifier.Replace("=", String.Empty);
-            verifier = verifier.Trim();
-            return verifier;
-        }
-
-        /*
-private func challenge(forVerifier verifier: String) -> String {
-	let hash = verifier.sha256
-	let challenge = hash.base64EncodedString()
-		.replacingOccurrences(of: "+", with: "-")
-		.replacingOccurrences(of: "/", with: "_")
-		.replacingOccurrences(of: "=", with: "")
-		.trimmingCharacters(in: .whitespaces)
-	return challenge
-}
-        */
-
-        private static string GenerateCodeChallengeFromCodeVerifier(string codeVerifier)
-        {
-            // Verify this implementation.  Consider cross-checking with Ruby's implementation.
-            String codeChallengeBase64;
-            var inputBytes = Encoding.UTF8.GetBytes(codeVerifier);
-            using (var sha256 = System.Security.Cryptography.SHA256.Create("SHA256"))
-            {
-                var outputBytes = sha256.ComputeHash(inputBytes);
-                codeChallengeBase64 = Convert.ToBase64String(outputBytes);
-            }
-            // Base64 strings have + and = in them and should be URL encoded.  This seems to be different from URL escaping as .NET's API defines it.
-            String codeChallenge = UrlSafeEncode(codeChallengeBase64);
-            return codeChallenge;
-        }
-
-        private static string UrlSafeEncode(String src)
-        {
-            // Ruby defines this method:  urlsafe_encode64(bin, padding: true)
-            // Returns the Base64-encoded version of bin.  This method complies with “Base 64 Encoding with URL and Filename Safe Alphabet” in RFC 4648.
-            // The alphabet uses ‘-’ instead of ‘+’ and ‘_’ instead of ‘/’. Note that the result can still contain ‘=’. You can remove the padding 
-            // by setting padding as false.
-            string str = src.Replace('+', '-').Replace('/', '_');
-            return str;
+            LoginToken loginToken = new LoginToken();
+            loginToken.AccessToken = tokens.AccessToken;
+            loginToken.RefreshToken = tokens.RefreshToken;
+            loginToken.CreatedUtc = tokens.CreatedAt;
+            loginToken.ExpiresInTimespan = tokens.ExpiresIn;
+            return loginToken;
         }
 
         internal void SetToken(LoginToken token)
@@ -545,9 +303,9 @@ private func challenge(forVerifier verifier: String) -> String {
         }
 
         // For testing purposes.
-        public async Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync()
+        public async Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync(TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
-            LoginToken newToken = await RefreshLoginTokenAsync(_token);
+            LoginToken newToken = await RefreshLoginTokenAsync(_token, region);
             if (newToken == null || newToken.AccessToken == null)
             {
                 Logger.WriteLine("TeslaLib: Refreshing the login token failed for {0}", Email);
@@ -568,31 +326,12 @@ private func challenge(forVerifier verifier: String) -> String {
         }
 
         // For a LoginToken that is close to expiry, this method will refresh the OAuth2 access token.  Returns a new LoginToken.
-        internal async Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken)
+        internal async Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken, TeslaAccountRegion region)
         {
-            var loginClient = new RestClient(LoginUrl);
+            var tokens = await TeslaAuthHelper.RefreshTokenAsync(loginToken.RefreshToken, region);
 
-            var request = new RestRequest("token")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddJsonBody(new
-            {
-                grant_type = "refresh_token",
-                refresh_token = loginToken.RefreshToken
-            });
-
-            var response = await loginClient.ExecutePostAsync<LoginToken>(request);
-
-            if (response.ResponseStatus == ResponseStatus.Error || response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                HandleKnownFailures(response);
-                throw response.ErrorException;
-            }
-
-            var newToken = response.Data;
-            return newToken;
+            LoginToken newTokens = ConvertTeslaAuthTokensToLoginToken(tokens);
+            return newTokens;
         }
 
         public List<TeslaVehicle> LoadVehicles()
