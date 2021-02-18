@@ -185,17 +185,16 @@ namespace TeslaAuth
                                     OnMFACodeRequired(username);
                                 }
                                 return await GetAuthorizationCodeWithMfaAsync(mfaCode, loginInfo, region);
-
                             }
-                            else
+                            else if (result.StatusCode != HttpStatusCode.OK)
                             {
-                                throw new Exception("Expected redirect did not occur");
+                                throw new Exception("Expected redirect did not occur.  Status code: " + result.StatusCode);
                             }
                         }
 
                         if (location == null)
                         {
-                            throw new Exception("Redirect location not available");
+                            throw new SecurityException($"Logging in failed for {username}.  The account may be locked.");
                         }
 
                         string code = HttpUtility.ParseQueryString(location.Query).Get("code");
