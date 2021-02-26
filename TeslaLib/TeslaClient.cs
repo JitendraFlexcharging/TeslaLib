@@ -59,14 +59,14 @@ namespace TeslaLib
             TeslaAuthHelper.MFACodeInvalid += MFACodeInvalidHandler;
         }
 
-        private static void MFACodeInvalidHandler(object sender, Tuple<string, string> tuple)
+        private static void MFACodeInvalidHandler(object sender, MFACodeInvalidEventArgs args)
         {
-            throw new MultiFactorAuthenticationException(String.Format("MFA problem: {0}", tuple.Item2), tuple.Item1);
+            throw new MultiFactorAuthenticationException(String.Format("MFA problem: {0}", args.Message), args.Username);
         }
 
-        private static void MFACodeRequiredHandler(object sender, string email)
+        private static void MFACodeRequiredHandler(object sender, MFACodeRequiredEventArgs args)
         {
-            throw new MultiFactorAuthenticationException("Multi-factor authentication is required for user " + email, email);
+            throw new MultiFactorAuthenticationException(String.Format("Multi-factor authentication is required for user {0}"), args.Username);
         }
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)
