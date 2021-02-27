@@ -33,10 +33,11 @@ namespace TeslaAuth
 
     public static class TeslaAuthHelper
     {
-
         private const string TESLA_CLIENT_ID = "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384";
         private const string TESLA_CLIENT_SECRET = "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3";
+        private const string UserAgent = ".NET TeslaAuthHelper";
         private static readonly Random random = new Random();
+
         public static string RandomString(int length)
         {
             const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -104,7 +105,7 @@ namespace TeslaAuth
             result.CodeChallenge = Convert.ToBase64String(Encoding.Default.GetBytes(code_challenge_SHA256)); 
 
             result.State = RandomString(20);
-                
+            
             using (HttpClient client = new HttpClient())
             {
                 UriBuilder b = new UriBuilder(GetBaseAddressForRegion(region) + "/oauth2/v3/authorize");
@@ -122,7 +123,8 @@ namespace TeslaAuth
                 b.Query = q.ToString();
                 string url = b.ToString();
 
-                    
+                client.DefaultRequestHeaders.Add("User-agent", UserAgent);
+
                 HttpResponseMessage response = await client.GetAsync(url);
                 var resultContent = await response.Content.ReadAsStringAsync();
 
@@ -171,6 +173,7 @@ namespace TeslaAuth
                     // client.Timeout = TimeSpan.FromSeconds(10);
                     client.BaseAddress = new Uri(GetBaseAddressForRegion(region));
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
+                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
                     //DateTime start = DateTime.UtcNow;
 
                     using (FormUrlEncodedContent content = new FormUrlEncodedContent(formFields))
@@ -282,6 +285,7 @@ namespace TeslaAuth
                 client.BaseAddress = new Uri(GetBaseAddressForRegion(region));
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Connection.Add("keep-alive");
+                client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                 using (var content = new StringContent(body.ToString(Newtonsoft.Json.Formatting.None), System.Text.Encoding.UTF8, "application/json"))
                 {
@@ -311,6 +315,7 @@ namespace TeslaAuth
             {
                 client.Timeout = TimeSpan.FromSeconds(5);
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                 using (var content = new StringContent(body.ToString(), System.Text.Encoding.UTF8, "application/json"))
                 {
@@ -351,6 +356,7 @@ namespace TeslaAuth
                 client.Timeout = TimeSpan.FromSeconds(5);
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Connection.Add("keep-alive");
+                client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                 using (var content = new StringContent(body.ToString(), System.Text.Encoding.UTF8, "application/json"))
                 {
@@ -383,7 +389,8 @@ namespace TeslaAuth
                 {
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    
+                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
+
                     UriBuilder b = new UriBuilder(GetBaseAddressForRegion(region) + "/oauth2/v3/authorize/mfa/factors");
                     b.Port = -1;
 
@@ -414,6 +421,7 @@ namespace TeslaAuth
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Referrer = new Uri("https://auth.tesla.com");
+                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                     var body = new JObject();
                     body.Add("factor_id", factorId);
@@ -457,6 +465,7 @@ namespace TeslaAuth
                     // client.Timeout = TimeSpan.FromSeconds(10);
                     client.BaseAddress = new Uri(GetBaseAddressForRegion(region));
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
+                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                     Dictionary<string, string> d = new Dictionary<string, string>();
                     d.Add("transaction_id", loginInfo.FormFields["transaction_id"]);
