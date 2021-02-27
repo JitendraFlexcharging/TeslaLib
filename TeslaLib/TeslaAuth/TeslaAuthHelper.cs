@@ -119,7 +119,9 @@ namespace TeslaAuth
                 q.Add("scope", "openid email offline_access");
                 q.Add("state", result.State);
                 if (username != null)
+                {
                     q.Add("login_hint", username);
+                }
                 b.Query = q.ToString();
                 string url = b.ToString();
 
@@ -285,12 +287,15 @@ namespace TeslaAuth
                 client.BaseAddress = new Uri(GetBaseAddressForRegion(region));
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Connection.Add("keep-alive");
-                client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                 using (var content = new StringContent(body.ToString(Newtonsoft.Json.Formatting.None), System.Text.Encoding.UTF8, "application/json"))
                 {
                     HttpResponseMessage result = await client.PostAsync(client.BaseAddress + "oauth2/v3/token", content);
                     string resultContent = await result.Content.ReadAsStringAsync();
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        ThrowException(result, resultContent);
+                    }
 
                     JObject response = JObject.Parse(resultContent);
                     
@@ -321,6 +326,10 @@ namespace TeslaAuth
                 {
                     HttpResponseMessage result = await client.PostAsync("https://owner-api.teslamotors.com/oauth/token", content);
                     string resultContent = await result.Content.ReadAsStringAsync();
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        ThrowException(result, resultContent);
+                    }
 
                     JObject response = JObject.Parse(resultContent);
                     DateTime createdAt = ToDateTime(response["created_at"].Value<Int64>());
@@ -362,6 +371,10 @@ namespace TeslaAuth
                 {
                     HttpResponseMessage result = await client.PostAsync(GetBaseAddressForRegion(region) + "/oauth2/v3/token", content);
                     string resultContent = await result.Content.ReadAsStringAsync();
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        ThrowException(result, resultContent);
+                    }
 
                     JObject response = JObject.Parse(resultContent);
                     
@@ -369,6 +382,14 @@ namespace TeslaAuth
                     return await ExchangeAccessTokenForBearerTokenAsync(accessToken);
                 }
             }
+        }
+
+        private static void ThrowException(HttpResponseMessage result, string resultContent)
+        {
+            var ex = new Exception(String.Format("TeslaAuthHelper RefreshTokenAsync failed.  Status: {0}  Reason: {1}", result.StatusCode, result.ReasonPhrase));
+            ex.Data["SerializedResponse"] = resultContent;
+            ex.Data["StatusCode"] = result.StatusCode;
+            throw ex;
         }
 
         private static async Task<string> GetAuthorizationCodeWithMfaAsync(string mfaCode, LoginInfo loginInfo, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
@@ -389,7 +410,6 @@ namespace TeslaAuth
                 {
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                     UriBuilder b = new UriBuilder(GetBaseAddressForRegion(region) + "/oauth2/v3/authorize/mfa/factors");
                     b.Port = -1;
@@ -401,6 +421,10 @@ namespace TeslaAuth
 
                     HttpResponseMessage result = await client.GetAsync(url);
                     resultContent = await result.Content.ReadAsStringAsync();
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        ThrowException(result, resultContent);
+                    }
 
                     var response = JObject.Parse(resultContent);
   
@@ -421,7 +445,6 @@ namespace TeslaAuth
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Referrer = new Uri("https://auth.tesla.com");
-                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                     var body = new JObject();
                     body.Add("factor_id", factorId);
@@ -433,6 +456,10 @@ namespace TeslaAuth
                     {
                         HttpResponseMessage result = await client.PostAsync(client.BaseAddress + "oauth2/v3/authorize/mfa/verify", content);
                         string resultContent = await result.Content.ReadAsStringAsync();
+                        if (!result.IsSuccessStatusCode)
+                        {
+                            ThrowException(result, resultContent);
+                        }
 
                         var response = JObject.Parse(resultContent);
                         var data = response["data"];
@@ -465,7 +492,7 @@ namespace TeslaAuth
                     // client.Timeout = TimeSpan.FromSeconds(10);
                     client.BaseAddress = new Uri(GetBaseAddressForRegion(region));
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
-                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
+                    // client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                     Dictionary<string, string> d = new Dictionary<string, string>();
                     d.Add("transaction_id", loginInfo.FormFields["transaction_id"]);

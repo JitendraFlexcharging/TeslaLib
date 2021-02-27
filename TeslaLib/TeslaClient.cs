@@ -109,7 +109,20 @@ namespace TeslaLib
                 else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
                 {
                     // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
-                    var newToken = await RefreshLoginTokenAsync(token, region);
+                    LoginToken newToken = null;
+                    try
+                    {
+                        newToken = await RefreshLoginTokenAsync(token, region);
+                    }
+                    catch(Exception e)
+                    {
+                        Object serializedResponse = e.Data["SerializedResponse"];
+                        String errMsg = String.Format("TeslaLib couldn't refresh a login token while logging in.  Will try to log in again.  {0}: {1}{2}",
+                            e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse);
+                        Console.WriteLine(errMsg);
+                        Logger.WriteLine(errMsg);
+                    }
+
                     if (TokenStore != null)
                     {
                         if (newToken == null)
@@ -126,7 +139,9 @@ namespace TeslaLib
                             token = newToken;
                         }
                     }
-                    SetToken(token);
+
+                    if (token != null)
+                        SetToken(token);
                 }
                 else
                 {
@@ -160,6 +175,9 @@ namespace TeslaLib
                         await TokenStore.DeleteTokenAsync(Email);
                     throw;
                 }
+
+                if (token == null)
+                    throw new SecurityException(String.Format("TeslaLib couldn't log in for user {0}", Email));
 
                 // Successfully obtained a new token.
                 SetToken(token);
@@ -254,9 +272,21 @@ namespace TeslaLib
 
         private async Task<LoginToken> GetLoginTokenAsync(string password, string mfaCode, TeslaAccountRegion region)
         {
-            Tokens tokens = await TeslaAuthHelper.AuthenticateAsync(Email, password, mfaCode, region);
+            LoginToken loginToken = null;
+            try
+            {
+                Tokens tokens = await TeslaAuthHelper.AuthenticateAsync(Email, password, mfaCode, region);
 
-            LoginToken loginToken = ConvertTeslaAuthTokensToLoginToken(tokens);
+                loginToken = ConvertTeslaAuthTokensToLoginToken(tokens);
+            }
+            catch(Exception e)
+            {
+                Object serializedResponse = e.Data["SerializedResponse"];
+                String responseStr = serializedResponse == null ? String.Empty : "\r\nSerialized response: " + serializedResponse;
+                Logger.WriteLine("TeslaClient GetLoginToken failed for user {0}.  {1}{2}", Email, e, responseStr);
+                Console.WriteLine("TeslaClient GetLoginToken failed for user {0}.  {1}{2}", Email, e, responseStr);
+                throw e;
+            }
 
             // @TODO: Verify that the TeslaAuthHelper code verifies the code challenge.
 
