@@ -123,7 +123,7 @@ namespace TeslaLib
                 throw throttled;
             }
 
-            if (response.StatusCode == HttpStatusCode.TooManyRequests && response.Content == TeslaClient.RetryLaterMessage)
+            if (response.StatusCode == HttpStatusCode.TooManyRequests && response.Content.Trim() == TeslaClient.RetryLaterMessage)
             {
                 var throttled = new TeslaThrottlingException();
                 throttled.Data["StatusCode"] = response.StatusCode;
