@@ -42,7 +42,7 @@ namespace TeslaLib
         */
 
         [JsonProperty(PropertyName = "vehicle_id")]
-        public int VehicleId { get; set; }
+        public long VehicleId { get; set; }
 
         [JsonProperty(PropertyName = "vin")]
         public string Vin { get; set; }
