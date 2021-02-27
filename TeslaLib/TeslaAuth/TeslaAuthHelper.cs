@@ -492,7 +492,7 @@ namespace TeslaAuth
                     // client.Timeout = TimeSpan.FromSeconds(10);
                     client.BaseAddress = new Uri(GetBaseAddressForRegion(region));
                     client.DefaultRequestHeaders.Add("Cookie", loginInfo.Cookie);
-                    // client.DefaultRequestHeaders.Add("User-agent", UserAgent);
+                    client.DefaultRequestHeaders.Add("User-agent", UserAgent);
 
                     Dictionary<string, string> d = new Dictionary<string, string>();
                     d.Add("transaction_id", loginInfo.FormFields["transaction_id"]);
