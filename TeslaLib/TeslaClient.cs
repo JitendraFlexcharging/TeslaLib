@@ -66,7 +66,7 @@ namespace TeslaLib
 
         private static void MFACodeRequiredHandler(object sender, MFACodeRequiredEventArgs args)
         {
-            throw new MultiFactorAuthenticationException(String.Format("Multi-factor authentication is required for user {0}"), args.Username);
+            throw new MultiFactorAuthenticationException(String.Format("Multi-factor authentication is required for user {0}", args.Username), args.Username);
         }
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret)

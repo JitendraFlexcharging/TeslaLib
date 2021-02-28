@@ -115,7 +115,7 @@ namespace TeslaLib
                 throw new TimeoutException("Timeout accessing a Tesla vehicle" + error);
             }
 
-            if (response.Content == TeslaClient.ThrottlingMessage)
+            if (response.Content == TeslaClient.ThrottlingMessage || response.StatusCode == HttpStatusCode.TooManyRequests)
             {
                 var throttled = new TeslaThrottlingException();
                 throttled.Data["StatusCode"] = response.StatusCode;
