@@ -15,7 +15,7 @@ namespace TeslaLib
     {
         private const string CacheFileName = "TeslaLoginTokenCache.cache";
 
-        private static readonly TimeSpan ExpirationTimeWindow = TimeSpan.FromDays(1);
+        //private static readonly TimeSpan ExpirationTimeWindow = TimeSpan.FromDays(1);
         private static readonly Dictionary<string, LoginToken> Tokens = new Dictionary<string, LoginToken>();
         private static readonly object CacheLock = new object();
         private static volatile bool _haveReadCacheFile;
@@ -138,6 +138,9 @@ namespace TeslaLib
                     return Task.FromResult<LoginToken>(null);
                 }
 
+                // The LoginToken's access token may have expired.  However, if it did we can simply retrieve the refresh token and try using that.
+                // Do not remove it from our cache file!
+                /*
                 // Ensure the LoginToken is still valid.
                 var expirationTime = token.CreatedUtc.ToLocalTime() + UnixTimeConverter.FromUnixTimeSpan(token.ExpiresIn);
 
@@ -148,6 +151,7 @@ namespace TeslaLib
                         WriteCacheFile();
                     token = null;
                 }
+                */
             }
             return Task.FromResult(token);
         }
