@@ -28,6 +28,7 @@ namespace TeslaLib
         private LoginToken _token;
 
         public RestClient Client { get; set; }
+        private static TeslaAuthHelper AuthHelper;
 
         public const string LoginUrl = "https://owner-api.teslamotors.com/oauth/";
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
@@ -55,8 +56,10 @@ namespace TeslaLib
 
         static TeslaClient()
         {
-            TeslaAuthHelper.MFACodeRequired += MFACodeRequiredHandler;
-            TeslaAuthHelper.MFACodeInvalid += MFACodeInvalidHandler;
+            String userAgent = "FlexCharging.com";  // This works with a '.' in the name, but requests hang without the '.'!
+            AuthHelper = new TeslaAuthHelper(userAgent);
+            AuthHelper.MFACodeRequired += MFACodeRequiredHandler;
+            AuthHelper.MFACodeInvalid += MFACodeInvalidHandler;
         }
 
         private static void MFACodeInvalidHandler(object sender, MFACodeInvalidEventArgs args)
@@ -275,7 +278,7 @@ namespace TeslaLib
             LoginToken loginToken = null;
             try
             {
-                Tokens tokens = await TeslaAuthHelper.AuthenticateAsync(Email, password, mfaCode, region);
+                Tokens tokens = await AuthHelper.AuthenticateAsync(Email, password, mfaCode, region);
 
                 loginToken = ConvertTeslaAuthTokensToLoginToken(tokens);
             }
@@ -298,7 +301,7 @@ namespace TeslaLib
             LoginToken loginToken = new LoginToken();
             loginToken.AccessToken = tokens.AccessToken;
             loginToken.RefreshToken = tokens.RefreshToken;
-            loginToken.CreatedUtc = tokens.CreatedAt;
+            loginToken.CreatedUtc = tokens.CreatedAt.UtcDateTime;
             loginToken.ExpiresInTimespan = tokens.ExpiresIn;
             return loginToken;
         }
@@ -358,7 +361,7 @@ namespace TeslaLib
         // For a LoginToken that is close to expiry, this method will refresh the OAuth2 access token.  Returns a new LoginToken.
         internal async Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken, TeslaAccountRegion region)
         {
-            var tokens = await TeslaAuthHelper.RefreshTokenAsync(loginToken.RefreshToken, region);
+            var tokens = await AuthHelper.RefreshTokenAsync(loginToken.RefreshToken, region);
 
             LoginToken newTokens = ConvertTeslaAuthTokensToLoginToken(tokens);
             return newTokens;

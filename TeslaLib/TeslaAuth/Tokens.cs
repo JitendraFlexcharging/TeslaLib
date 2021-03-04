@@ -1,4 +1,4 @@
-// Code from https://github.com/briangru/TeslaAuth, with work from bassmaster187, Tom Hollander, and briangru
+// Code from https://github.com/briangru/TeslaAuth, with work from bassmaster187, Tom Hollander, briangru, and Ramon Smits
 using System;
 
 namespace TeslaAuth
@@ -8,7 +8,7 @@ namespace TeslaAuth
     {
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
         public TimeSpan ExpiresIn { get; set; }
     }
 }
