@@ -148,7 +148,6 @@ namespace TeslaLib
         // May take other parameters like a start_date, maybe?
         public EnergySiteUsageHistory GetCalendarHistory(DateTimeOffset endDate)
         {
-            // kind=power&end_date=2021-03-10T07:59:59Z
             var request = new RestRequest("energy_sites/{site_id}/calendar_history");
             request.AddParameter("site_id", EnergySiteId, ParameterType.UrlSegment);
             request.AddQueryParameter("kind", "power");
