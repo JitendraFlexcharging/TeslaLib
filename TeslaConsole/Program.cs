@@ -26,14 +26,31 @@ namespace TeslaConsole
             // If we have logged in previously with the same email address, then we can use this method and refresh tokens,
             // assuming the refresh token hasn't expired.
             //client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
-            //client.LoginUsingTokenStoreAsync(password).Wait();
+            client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
 
-            
+            /*
+            try
+            {
+                Console.WriteLine("Logging in without an MFA code for "+email);
+                client.LoginAsync(password, null, TeslaAuth.TeslaAccountRegion.USA).Wait();
+                Console.WriteLine("Succeeded without MFA code");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Caught " + e);
+                Console.Write("Enter Tesla multi-factor authentication code --> ");
+                String mfaCode = Console.ReadLine().Trim();
+                client.LoginAsync(password, mfaCode).Wait();
+                Console.WriteLine("LoginAsync returned successfully");
+            }
+            */
+
+            /*
             Console.Write("Enter Tesla multi-factor authentication code --> ");
             String mfaCode = Console.ReadLine().Trim();
             client.LoginAsync(password, mfaCode).Wait();
-            
+            */
 
             //client.GetAllProductsAsync(CancellationToken.None).Wait();
             List<EnergySite> energySites = client.GetEnergySitesAsync(CancellationToken.None).Result;
@@ -55,7 +72,10 @@ namespace TeslaConsole
                     Console.WriteLine($"Installation time zone: {configuration.InstallationTimeZone}");
                     Console.WriteLine($"Nameplate Energy: {configuration.NameplateEnergy}  Nameplate Power: {configuration.NameplatePower}");
                     Console.WriteLine($"History: {energySite.GetHistory()}");
-                    Console.WriteLine($"Calendar History: {energySite.GetCalendarHistory()}");
+                    var history = energySite.GetCalendarHistory(DateTimeOffset.Now);
+                    Console.WriteLine($"Calendar History has {history.TimeSeries.Length} items in the time series:");
+                    foreach (var data in history.TimeSeries)
+                        Console.WriteLine($"  {data.TimeStamp}  Grid serivces: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
                 }
             }
 
