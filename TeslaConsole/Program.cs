@@ -60,7 +60,7 @@ namespace TeslaConsole
                 foreach(EnergySite energySite in energySites)
                 {
                     Console.WriteLine($"Energy site name: {energySite.SiteName}  SoC: {energySite.StateOfCharge.ToString("0.0")}%  Power: {energySite.BatteryPower}  Energy left: {energySite.EnergyLeft.ToString("0")} / {energySite.TotalPackEnergy}");
-                    //Console.WriteLine($"Site status: {energySite.GetEnergySiteStatus()}  Configuration: {energySite.GetSiteConfiguration()}");
+                    //Console.WriteLine($"Site summary: {energySite.GetSiteSummary()}");
                     EnergySiteData liveStatus = energySite.GetLiveStatus();
                     Console.WriteLine($"Live status -  Home: {liveStatus.LoadPower}  Solar: {liveStatus.SolarPower}  Battery: {liveStatus.BatteryPower}  Grid: {liveStatus.GridPower}");
                     var configuration = energySite.GetSiteConfiguration();
@@ -71,11 +71,31 @@ namespace TeslaConsole
                     Console.WriteLine($"TOU settings - Optimization strategy: {touSettings.OptimizationStrategy}  Number of schedule items: {touSettings.Schedule.Count}");
                     Console.WriteLine($"Installation time zone: {configuration.InstallationTimeZone}");
                     Console.WriteLine($"Nameplate Energy: {configuration.NameplateEnergy}  Nameplate Power: {configuration.NameplatePower}");
-                    Console.WriteLine($"History: {energySite.GetHistory()}");
-                    var history = energySite.GetCalendarHistory(DateTimeOffset.Now);
-                    Console.WriteLine($"Calendar History has {history.TimeSeries.Length} items in the time series:");
-                    foreach (var data in history.TimeSeries)
-                        Console.WriteLine($"  {data.TimeStamp}  Grid serivces: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
+                    
+                    Console.WriteLine("Energy history:");
+                    var energyHistory = energySite.GetEnergyHistory();
+                    foreach (var energyHistoryData in energyHistory.TimeSeries)
+                        Console.WriteLine($"{energyHistoryData.TimeStamp}  Solar exported: {energyHistoryData.SolarEnergyExported.ToString("0")}  Powerwall exported: {energyHistoryData.BatteryEnergyExported.ToString("0")}  Solar -> Battery {energyHistoryData.BatteryEnergyImportedFromSolar.ToString("0")}");
+                    Console.WriteLine();
+
+                    Console.WriteLine($"Power History:");
+                    var powerHistory = energySite.GetPowerHistory();
+                    foreach (var data in powerHistory.TimeSeries)
+                        Console.WriteLine($"  {data.TimeStamp}  Grid services: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
+
+                    /*  // Doesn't work, doesn't exist, or I don't know how to call it right.
+                    Console.WriteLine("Calendar Energy history:");
+                    var energyCalendarHistory = energySite.GetCalendarEnergyHistory(DateTimeOffset.Now);
+                    foreach (var energyHistoryData in energyCalendarHistory.TimeSeries)
+                        Console.WriteLine($"{energyHistoryData.TimeStamp}  Solar exported: {energyHistoryData.SolarEnergyExported.ToString("0")}  Powerwall exported: {energyHistoryData.BatteryEnergyExported.ToString("0")}  Solar -> Battery {energyHistoryData.BatteryEnergyImportedFromSolar.ToString("0")}");
+                    Console.WriteLine();
+                    */
+
+                    Console.WriteLine($"Calendar Power History:");
+                    var powerCalendarHistory = energySite.GetCalendarPowerHistory(DateTimeOffset.Now);
+                    Console.WriteLine($"Calendar Power History has {powerCalendarHistory.TimeSeries.Length} items in the time series:");
+                    foreach (var data in powerCalendarHistory.TimeSeries)
+                        Console.WriteLine($"  {data.TimeStamp}  Grid services: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
                 }
             }
 
