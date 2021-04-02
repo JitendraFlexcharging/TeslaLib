@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,14 @@ using TeslaLib.Models;
 
 namespace TeslaLib
 {
+    public enum TimePeriod
+    {
+        Day,
+        Week,
+        Month,
+        Year
+    }
+
     public class EnergySiteComponents
     {
         [JsonProperty(PropertyName = "battery")]
@@ -102,10 +111,11 @@ namespace TeslaLib
 
         #region State and Settings
 
-        /*  // API documentation says this exists.  I don't think it does.
-        public String GetStatus()
+        /*
+        // The site_status API returns all the fields on EnergySite.  Maybe not so interesting to include that on an instance of an EnergySite...
+        public EnergySite GetSiteSummary()
         {
-            var request = new RestRequest("energy_sites/{site_id}/status");
+            var request = new RestRequest("energy_sites/{site_id}/site_status");
             request.AddParameter("site_id", EnergySiteId, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
@@ -135,27 +145,54 @@ namespace TeslaLib
             return ParseResult<EnergySiteConfiguration>(response);
         }
 
-        // Not yet working right
-        public String GetHistory()
+        public EnergyHistory GetEnergyHistory(TimePeriod timePeriod = TimePeriod.Week)
         {
             var request = new RestRequest("energy_sites/{site_id}/history");
             request.AddParameter("site_id", EnergySiteId, ParameterType.UrlSegment);
+            request.AddQueryParameter("period", TimePeriodToString(timePeriod));
+            request.AddQueryParameter("kind", "energy");
 
             var response = Client.Get(request);
-            return ParseResult<String>(response);
+            return ParseResult<EnergyHistory>(response);
+        }
+
+        public PowerHistory GetPowerHistory(TimePeriod timePeriod = TimePeriod.Week)
+        {
+            var request = new RestRequest("energy_sites/{site_id}/history");
+            request.AddParameter("site_id", EnergySiteId, ParameterType.UrlSegment);
+            request.AddQueryParameter("period", TimePeriodToString(timePeriod));
+            request.AddQueryParameter("kind", "power");
+
+            var response = Client.Get(request);
+            return ParseResult<PowerHistory>(response);
         }
 
         // May take other parameters like a start_date, maybe?
-        public EnergySiteUsageHistory GetCalendarHistory(DateTimeOffset endDate)
+        public PowerHistory GetCalendarPowerHistory(DateTimeOffset endDate)
         {
             var request = new RestRequest("energy_sites/{site_id}/calendar_history");
             request.AddParameter("site_id", EnergySiteId, ParameterType.UrlSegment);
-            request.AddQueryParameter("kind", "power");
+            request.AddQueryParameter("kind", "power");  // Certain API's may support "energy" too.
             request.AddQueryParameter("end_date", endDate.ToString("O"));
 
             var response = Client.Get(request);
-            return ParseResult<EnergySiteUsageHistory>(response);
+            return ParseResult<PowerHistory>(response);
         }
+
+        /*
+        // This doesn't seem to work or exist, or I don't have the syntax right.  I get back BadRequest.
+        public EnergyHistory GetCalendarEnergyHistory(DateTimeOffset endDate)
+        {
+            // kind=power&end_date=2021-03-10T07:59:59Z
+            var request = new RestRequest("energy_sites/{site_id}/calendar_history");
+            request.AddParameter("site_id", EnergySiteId, ParameterType.UrlSegment);
+            request.AddQueryParameter("kind", "energy");
+            request.AddQueryParameter("end_date", endDate.ToString("O"));
+
+            var response = Client.Get(request);
+            return ParseResult<EnergyHistory>(response);
+        }
+        */
 
         #endregion State and Settings
 
@@ -165,6 +202,12 @@ namespace TeslaLib
         {
             if (response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+                throw new InvalidOperationException("TeslaLib EnergySite made a bad request");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                throw new Exception("TeslaLib endpoint returned Not Found.  Response URI: " + response.ResponseUri);
+            if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
+                throw new TeslaServerException();
 
             try
             {
@@ -185,13 +228,21 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    throw new Exception("TeslaLib endpoint returned Not Found");
-                if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
-                    throw new TeslaServerException();
-
                 e.Data["SerializedResponse"] = response.Content;
                 throw;
+            }
+        }
+
+        private static String TimePeriodToString(TimePeriod timePeriod)
+        {
+            switch(timePeriod)
+            {
+                case TimePeriod.Day: return "day";
+                case TimePeriod.Week: return "week";
+                case TimePeriod.Month: return "month";
+                case TimePeriod.Year: return "year";
+                default:
+                    throw new NotImplementedException($"TimePeriod ToString for {timePeriod} is not yet implemented");
             }
         }
 

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace TeslaLib.Models
 {
-    public class EnergySiteUsageHistory
+    public class EnergyHistory
     {
         [JsonProperty(PropertyName = "serial_number")]
         public String SerialNumber { get; set; }
@@ -18,6 +18,6 @@ namespace TeslaLib.Models
         /// Power in Watts(?)
         /// </summary>
         [JsonProperty(PropertyName = "time_series")]
-        public EnergySiteUsageHistoryData[] TimeSeries { get; set; }
+        public EnergyHistoryData[] TimeSeries { get; set; }
     }
 }

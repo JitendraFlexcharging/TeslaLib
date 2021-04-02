@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace TeslaLib.Models
 {
-    public class EnergySiteUsageHistoryData
+    public class PowerHistoryData
     {
         [JsonProperty(PropertyName = "solar_power")]
         public double SolarPower { get; set; }
