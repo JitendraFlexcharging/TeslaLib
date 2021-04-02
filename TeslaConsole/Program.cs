@@ -137,12 +137,17 @@ namespace TeslaConsole
                 }
 
                 var vehicleConfig = car.LoadVehicleConfig();
-                Console.WriteLine("From VehicleConfig, Car type: {0}  special type: {1}  trim badging: {2}", vehicleConfig.CarType, 
-                    vehicleConfig.CarSpecialType, vehicleConfig.TrimBadging);
-                Console.WriteLine("Use range badging? {0}  Spoiler type: {1}", vehicleConfig.UseRangeBadging, vehicleConfig.SpoilerType);
-                Console.WriteLine("Color: {0}  Roof color: {1}  Has sunroof? {2}", vehicleConfig.ExteriorColor, vehicleConfig.RoofColor, 
-                    vehicleConfig.SunRoofInstalled.HasValue ? vehicleConfig.SunRoofInstalled.Value.ToString() : "false");
-                Console.WriteLine("Wheels: {0}", vehicleConfig.WheelType);
+                if (vehicleConfig == null)
+                    Console.WriteLine("Couldn't get vehicle configuration");
+                else
+                {
+                    Console.WriteLine("From VehicleConfig, Car type: {0}  special type: {1}  trim badging: {2}", vehicleConfig.CarType,
+                        vehicleConfig.CarSpecialType, vehicleConfig.TrimBadging);
+                    Console.WriteLine("Use range badging? {0}  Spoiler type: {1}", vehicleConfig.UseRangeBadging, vehicleConfig.SpoilerType);
+                    Console.WriteLine("Color: {0}  Roof color: {1}  Has sunroof? {2}", vehicleConfig.ExteriorColor, vehicleConfig.RoofColor,
+                        vehicleConfig.SunRoofInstalled.HasValue ? vehicleConfig.SunRoofInstalled.Value.ToString() : "false");
+                    Console.WriteLine("Wheels: {0}", vehicleConfig.WheelType);
+                }
 
                 var chargeState = car.LoadChargeStateStatus();
                 Console.WriteLine($" State of charge: {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
