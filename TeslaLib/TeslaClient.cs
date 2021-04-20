@@ -86,7 +86,8 @@ namespace TeslaLib
             set { TokenStore = value; }
         }
 
-        public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
+        public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, TeslaAccountRegion region = TeslaAccountRegion.Unknown, 
+            bool forceRefreshOlderThanToday = false)
         {
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
@@ -100,26 +101,32 @@ namespace TeslaLib
             if (token != null)
             {
                 // Check expiration.  If we're within a few days of expiration, refresh it.
+                // If the access token expired, we might still be able to use the refresh token, maybe.
                 TimeSpan expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
+
+                /*  // This code was throwing away the token without trying the refresh token.  Seems silly.
                 if (expirationTimeFromNow.TotalSeconds < 0)
                 {
                     // If it expired, we need a new token.  Not clear that the refresh token will work.
                     Logger.WriteLine("TeslaLib login token for {0} expired.  UTC expiry time: {1}", Email, token.ExpiresUtc);
                     token = null;
                 }
-                else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
+                */
+
+                if (expirationTimeFromNow < TokenExpirationRenewalWindow || (forceRefreshOlderThanToday && token.CreatedUtc < DateTime.Now.Date))
                 {
                     // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
                     LoginToken newToken = null;
                     try
                     {
                         newToken = await RefreshLoginTokenAsync(token, region);
+                        expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
                     }
                     catch(Exception e)
                     {
                         Object serializedResponse = e.Data["SerializedResponse"];
-                        String errMsg = String.Format("TeslaLib couldn't refresh a login token while logging in.  Will try to log in again.  {0}: {1}{2}",
-                            e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse);
+                        String errMsg = String.Format("TeslaLib couldn't refresh a login token while logging in.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
+                            token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse);
                         Console.WriteLine(errMsg);
                         Logger.WriteLine(errMsg);
                     }
@@ -147,6 +154,13 @@ namespace TeslaLib
                 else
                 {
                     SetToken(token);
+                }
+
+                if (expirationTimeFromNow.TotalSeconds < 0)
+                {
+                    // If it expired, we need a new token.  Not clear that the refresh token will work.
+                    Logger.WriteLine("TeslaLib login token for {0} expired.  UTC expiry time: {1}  Created at: {2}", Email, token.ExpiresUtc, token.CreatedUtc);
+                    token = null;
                 }
             }
 
