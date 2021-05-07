@@ -92,7 +92,7 @@ namespace TeslaLib.Models
         // Fields that exist as of August 2017:
 
         [JsonProperty(PropertyName = "odometer")]
-        public double Odometer { get; set; }  // Value is in miles, regardless of the car's UI settings.
+        public double? Odometer { get; set; }  // Value is in miles, regardless of the car's UI settings.
 
         // Newer fields documented in Tim Dorr's docs as of Jan 2019
         [JsonProperty(PropertyName = "api_version")]

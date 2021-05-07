@@ -130,7 +130,10 @@ namespace TeslaConsole
                 else
                 {
                     Console.WriteLine(" Roof state: {0}", vehicleState.PanoramicRoofState);
-                    Console.WriteLine(" Odometer: {0}", vehicleState.Odometer);
+                    if (vehicleState.Odometer.HasValue)
+                        Console.WriteLine(" Odometer: {0}", vehicleState.Odometer.Value);
+                    else
+                        Console.WriteLine(" Odometer has no value.");
                     Console.WriteLine(" Sentry Mode available: {0}  Sentry mode on: {1}", 
                         vehicleState.SentryModeAvailable, vehicleState.SentryMode);
                     Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion.GetValueOrDefault(), vehicleState.CarVersion);
