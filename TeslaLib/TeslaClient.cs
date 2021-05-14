@@ -98,6 +98,7 @@ namespace TeslaLib
                 token = await TokenStore.GetTokenAsync(Email);
             }
 
+            bool refreshingTokenFailed = false;
             if (token != null)
             {
                 // Check expiration.  If we're within a few days of expiration, refresh it.
@@ -124,11 +125,15 @@ namespace TeslaLib
                     }
                     catch(Exception e)
                     {
+                        refreshingTokenFailed = true;
                         Object serializedResponse = e.Data["SerializedResponse"];
-                        String errMsg = String.Format("TeslaLib couldn't refresh a login token while logging in.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
-                            token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse);
+                        String errMsg = String.Format("TeslaLib couldn't refresh a login token while logging in for account {5}.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
+                            token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse, Email);
                         Console.WriteLine(errMsg);
                         Logger.WriteLine(errMsg);
+
+                        if (forceRefreshOlderThanToday)
+                            token = null;
                     }
 
                     if (TokenStore != null)
@@ -186,6 +191,11 @@ namespace TeslaLib
                 }
                 catch(SecurityException)
                 {
+                    String getLoginTokenFailed = $"TeslaLib GetLoginTokenAsync failed for account {Email}";
+                    if (refreshingTokenFailed)
+                        getLoginTokenFailed += "  Refreshing the login token had failed previously.";
+                    Console.WriteLine(getLoginTokenFailed);
+                    Logger.WriteLine(getLoginTokenFailed);
                     if (TokenStore != null)
                         await TokenStore.DeleteTokenAsync(Email);
                     throw;
