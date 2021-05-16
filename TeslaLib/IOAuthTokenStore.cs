@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Threading.Tasks;
 using TeslaLib.Models;
@@ -15,6 +16,8 @@ namespace TeslaLib
         Task UpdateTokenAsync(string emailAddress, LoginToken token);
 
         Task DeleteTokenAsync(string emailAddress);
+
+        Task<ReadOnlyDictionary<String, LoginToken>> GetAllTokens();
 
         void ClearCache();
     }

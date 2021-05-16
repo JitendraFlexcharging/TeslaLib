@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -154,6 +155,21 @@ namespace TeslaLib
                 */
             }
             return Task.FromResult(token);
+        }
+
+        public Task<ReadOnlyDictionary<String, LoginToken>> GetAllTokens()
+        {
+            lock (CacheLock)
+            {
+                if (!_haveReadCacheFile && OSSupportsTokenCache)
+                {
+                    ReadCacheFile();
+                    _haveReadCacheFile = true;
+                }
+
+                var readOnlyWrapper = new ReadOnlyDictionary<String, LoginToken>(Tokens);
+                return Task.FromResult(readOnlyWrapper);
+            }
         }
     }
 }

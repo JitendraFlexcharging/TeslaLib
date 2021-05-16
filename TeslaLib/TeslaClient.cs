@@ -196,8 +196,8 @@ namespace TeslaLib
                         getLoginTokenFailed += "  Refreshing the login token had failed previously.";
                     Console.WriteLine(getLoginTokenFailed);
                     Logger.WriteLine(getLoginTokenFailed);
-                    if (TokenStore != null)
-                        await TokenStore.DeleteTokenAsync(Email);
+                    //if (TokenStore != null)
+                    //    await TokenStore.DeleteTokenAsync(Email);
                     throw;
                 }
 
