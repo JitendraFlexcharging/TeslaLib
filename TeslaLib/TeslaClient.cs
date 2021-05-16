@@ -434,7 +434,7 @@ namespace TeslaLib
                 throw new InvalidOperationException("Log in to your Tesla account first.");
 
             var request = new RestRequest("vehicles");
-            var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
+            var response = await Client.ExecuteGetAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 UnauthorizedHandler(response);
@@ -515,7 +515,7 @@ namespace TeslaLib
                 throw new InvalidOperationException("Log in to your Tesla account first.");
 
             var request = new RestRequest("products");
-            var response = await Client.ExecuteGetTaskAsync(request, cancellationToken);
+            var response = await Client.ExecuteGetAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 UnauthorizedHandler(response);
