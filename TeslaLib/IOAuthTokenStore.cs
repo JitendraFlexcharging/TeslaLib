@@ -17,7 +17,7 @@ namespace TeslaLib
 
         Task DeleteTokenAsync(string emailAddress);
 
-        Task<ReadOnlyDictionary<String, LoginToken>> GetAllTokens();
+        Task<ReadOnlyDictionary<String, LoginToken>> GetAllTokensAsync();
 
         void ClearCache();
     }

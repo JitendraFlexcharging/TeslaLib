@@ -157,7 +157,7 @@ namespace TeslaLib
             return Task.FromResult(token);
         }
 
-        public Task<ReadOnlyDictionary<String, LoginToken>> GetAllTokens()
+        public Task<ReadOnlyDictionary<String, LoginToken>> GetAllTokensAsync()
         {
             lock (CacheLock)
             {
