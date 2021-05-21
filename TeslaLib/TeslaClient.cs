@@ -114,7 +114,7 @@ namespace TeslaLib
                 }
                 */
 
-                if (expirationTimeFromNow < TokenExpirationRenewalWindow || (forceRefreshOlderThanToday && token.CreatedUtc < DateTime.Now.Date))
+                if (expirationTimeFromNow < TokenExpirationRenewalWindow || (forceRefreshOlderThanToday && token.CreatedUtc < DateTime.UtcNow.Date.AddDays(-2)))
                 {
                     // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
                     LoginToken newToken = null;
@@ -164,7 +164,10 @@ namespace TeslaLib
                 if (expirationTimeFromNow.TotalSeconds < 0)
                 {
                     // If it expired, we need a new token.  Not clear that the refresh token will work.
-                    Logger.WriteLine("TeslaLib login token for {0} expired.  UTC expiry time: {1}  Created at: {2}", Email, token.ExpiresUtc, token.CreatedUtc);
+                    if (token == null)
+                        Logger.WriteLine("TeslaLib login token for {0} expired.", Email);
+                    else
+                        Logger.WriteLine("TeslaLib login token for {0} expired.  UTC expiry time: {1}  Created at: {2}", Email, token.ExpiresUtc, token.CreatedUtc);
                     token = null;
                 }
             }
