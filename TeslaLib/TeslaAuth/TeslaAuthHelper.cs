@@ -24,29 +24,32 @@ using Newtonsoft.Json.Linq;
 
 namespace TeslaAuth
 {
-    public sealed class MFACodeRequiredEventArgs : EventArgs
-    {
-        public String Username { get; set; }
-    }
-
-    public sealed class MFACodeInvalidEventArgs : EventArgs
-    {
-        public String Username { get; set; }
-        public String Message { get; set; }
-    }
-
+    /// <summary>
+    /// TeslaAuthHelper gets the OAuth2 access token and refresh token needed to interact with a Tesla account.
+    /// This class is not threadsafe, due to the use of instance state.  It works well for a mobile app used by a single
+    /// user at once.  If you are trying to log in with multiple accounts, create a new instance per session.  
+    /// Also, Tesla accounts in different countries are stored on different servers (such as China vs. the rest of the world).
+    /// You'll need a different instance for each region.
+    /// </summary>
     public class TeslaAuthHelper
     {
         const string TESLA_CLIENT_ID = "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384";
         const string TESLA_CLIENT_SECRET = "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3";
         static readonly Random Random = new Random();
-        readonly ConcurrentDictionary<TeslaAccountRegion, HttpClient> clients = new ConcurrentDictionary<TeslaAccountRegion, HttpClient>();
         readonly string UserAgent;
-
+        readonly LoginInfo loginInfo;
+        readonly HttpClient client;
+        
         #region Constructor and HttpClient initialisation
-        public TeslaAuthHelper(string userAgent)
+        public TeslaAuthHelper(string userAgent, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
             UserAgent = userAgent;
+            loginInfo = new LoginInfo
+            {
+                CodeVerifier = RandomString(86),
+                State = RandomString(20)
+            };
+            client = CreateHttpClient(region);
         }
 
         HttpClient CreateHttpClient(TeslaAccountRegion region)
@@ -74,15 +77,51 @@ namespace TeslaAuth
         }
         #endregion Constructor and HttpClient initialisation
 
-        #region Public API for headless auth (only works if no CAPTCHA is displayed)
-        public async Task<Tokens> AuthenticateAsync(string username, string password, string mfaCode = null, TeslaAccountRegion region = TeslaAccountRegion.Unknown, CancellationToken cancellationToken = default)
+        #region Public API for browser-assisted auth
+        public string GetLoginUrlForBrowser()
         {
-            
-            var client = clients.GetOrAdd(region, CreateHttpClient);
+            var code_challenge_SHA256 = ComputeSHA256Hash(loginInfo.CodeVerifier);
+            loginInfo.CodeChallenge = Convert.ToBase64String(Encoding.Default.GetBytes(code_challenge_SHA256));
 
-            var loginInfo = await InitializeLoginAsync(client, cancellationToken);
-            var code = await GetAuthorizationCodeAsync(username, password, mfaCode, loginInfo, client, cancellationToken);
-            var tokens = await ExchangeCodeForBearerTokenAsync(code, loginInfo, client, cancellationToken);
+            var b = new UriBuilder(client.BaseAddress + "/oauth2/v3/authorize") { Port = -1 };
+
+            var q = HttpUtility.ParseQueryString(b.Query);
+            q["client_id"] = "ownerapi";
+            q["code_challenge"] = loginInfo.CodeChallenge;
+            q["code_challenge_method"] = "S256";
+            q["redirect_uri"] = "https://auth.tesla.com/void/callback";
+            q["response_type"] = "code";
+            q["scope"] = "openid email offline_access";
+            q["state"] = loginInfo.State;
+            b.Query = q.ToString();
+            return b.ToString();
+        }
+
+        public async Task<Tokens> GetTokenAfterLoginAsync(string redirectUrl, CancellationToken cancellationToken = default)
+        {
+            // URL is something like https://auth.tesla.com/void/callback?code=b6a6a44dea889eb08cd8afe5adc16353662cc5d82ba0c6044c95b13d6f…"
+            var b = new UriBuilder(redirectUrl);
+            var q = HttpUtility.ParseQueryString(b.Query);
+            var code = q["code"];
+
+            var tokens = await ExchangeCodeForBearerTokenAsync(code, client, cancellationToken);
+            var accessAndRefreshTokens = await ExchangeAccessTokenForBearerTokenAsync(tokens.AccessToken, client, cancellationToken);
+            return new Tokens
+            {
+                AccessToken = accessAndRefreshTokens.AccessToken,
+                RefreshToken = tokens.RefreshToken,
+                CreatedAt = accessAndRefreshTokens.CreatedAt,
+                ExpiresIn = accessAndRefreshTokens.ExpiresIn
+            };
+        }
+        #endregion Public API for browser-assisted auth
+
+        #region Public API for headless auth (only works if no CAPTCHA is displayed)
+        public async Task<Tokens> AuthenticateAsync(string username, string password, string mfaCode = null, CancellationToken cancellationToken = default)
+        {
+            await InitializeLoginAsync(client, cancellationToken);
+            var code = await GetAuthorizationCodeAsync(username, password, mfaCode, client, cancellationToken);
+            var tokens = await ExchangeCodeForBearerTokenAsync(code, client, cancellationToken);
             var accessAndRefreshTokens = await ExchangeAccessTokenForBearerTokenAsync(tokens.AccessToken, client, cancellationToken);
             return new Tokens
             {
@@ -95,10 +134,8 @@ namespace TeslaAuth
         #endregion Public API for headless auth (only works if no CAPTCHA is displayed)
 
         #region Public API for token refresh
-        public async Task<Tokens> RefreshTokenAsync(string refreshToken, TeslaAccountRegion region, CancellationToken cancellationToken = default)
+        public async Task<Tokens> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
-            var client = clients.GetOrAdd(region, CreateHttpClient);
-
             var body = new JObject
             {
                 {"grant_type", "refresh_token"},
@@ -112,57 +149,23 @@ namespace TeslaAuth
             var resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
-                ThrowException(result, resultContent);
+                ThrowException("RefreshTokenAsync", result, resultContent);
             }
 
             var response = JObject.Parse(resultContent);
             var accessToken = response["access_token"]!.Value<string>();
-            return await ExchangeAccessTokenForBearerTokenAsync(accessToken, client, cancellationToken);
+            var newTokens = await ExchangeAccessTokenForBearerTokenAsync(accessToken, client, cancellationToken);
+            newTokens.RefreshToken = response["refresh_token"]!.Value<string>();
+            return newTokens;
         }
         #endregion Public API for token refresh
-
+        
         #region Authentication helpers
-        async Task<LoginInfo> InitializeLoginAsync(HttpClient client, CancellationToken cancellationToken, string username = null)
+        async Task InitializeLoginAsync(HttpClient client, CancellationToken cancellationToken)
         {
-            var result = new LoginInfo
-            {
-                CodeVerifier = RandomString(86),
-                State = RandomString(20)
-            };
-
-            var code_challenge_SHA256 = ComputeSHA256Hash(result.CodeVerifier);
-            result.CodeChallenge = Convert.ToBase64String(Encoding.Default.GetBytes(code_challenge_SHA256));
-
-            var b = new UriBuilder(client.BaseAddress + "/oauth2/v3/authorize") { Port = -1 };
-
-            var q = HttpUtility.ParseQueryString(b.Query);
-            q["client_id"] = "ownerapi";
-            q["code_challenge"] = result.CodeChallenge;
-            q["code_challenge_method"] = "S256";
-            q["redirect_uri"] = "https://auth.tesla.com/void/callback";
-            q["response_type"] = "code";
-            q["scope"] = "openid email offline_access";
-            q["state"] = result.State;
-            if (username != null)
-            {
-                q.Add("login_hint", username);
-            }
-            b.Query = q.ToString();
-            string url = b.ToString();
-
-            using var response = await client.GetAsync(url, cancellationToken);
+            var loginUrl = GetLoginUrlForBrowser();
+            using var response = await client.GetAsync(loginUrl, cancellationToken);
             var resultContent = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                if (response.StatusCode == HttpStatusCode.SeeOther)
-                {
-                    // @TODO: Handle redirect logic.  Test by say our US address is in China, and see what happens.
-                    throw new NotImplementedException("TODO: Wrong Tesla region.  Need to look elsewhere!");
-                }
-
-                throw new Exception(String.Format("Initializing a Tesla login failed. Status code: {0}  {1}", response.StatusCode, response.ReasonPhrase));
-            }
 
             var hiddenFields = Regex.Matches(resultContent, "type=\\\"hidden\\\" name=\\\"(.*?)\\\" value=\\\"(.*?)\\\"");
             var formFields = new Dictionary<string, string>();
@@ -171,12 +174,11 @@ namespace TeslaAuth
                 formFields.Add(match.Groups[1].Value, match.Groups[2].Value);
             }
 
-            result.FormFields = formFields;
+            loginInfo.FormFields = formFields;
 
-            return result;
         }
 
-        async Task<string> GetAuthorizationCodeAsync(string username, string password, string mfaCode, LoginInfo loginInfo, HttpClient client, CancellationToken cancellationToken)
+        async Task<string> GetAuthorizationCodeAsync(string username, string password, string mfaCode, HttpClient client, CancellationToken cancellationToken)
         {
             var formFields = loginInfo.FormFields;
             formFields.Add("identity", username);
@@ -184,7 +186,7 @@ namespace TeslaAuth
 
             using var content = new FormUrlEncodedContent(formFields);
 
-            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") { Port = -1 };
+            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") {Port = -1};
             var q = HttpUtility.ParseQueryString(b.Query);
             q["client_id"] = "ownerapi";
             q["code_challenge"] = loginInfo.CodeChallenge;
@@ -217,12 +219,12 @@ namespace TeslaAuth
                 {
                     if (string.IsNullOrEmpty(mfaCode))
                     {
-                        OnMFACodeRequired(username);
+                        throw new MultiFactorAuthenticationException(String.Format("Multi-factor code required to authenticate for account {0}", username), username);
                     }
 
                     return await GetAuthorizationCodeWithMfaAsync(mfaCode, loginInfo, client, cancellationToken);
                 }
-                else if (result.StatusCode != HttpStatusCode.OK)
+                else
                 {
                     throw new Exception("Expected redirect did not occur.  Status code: " + result.StatusCode);
                 }
@@ -239,7 +241,7 @@ namespace TeslaAuth
             return code;
         }
 
-        async Task<Tokens> ExchangeCodeForBearerTokenAsync(string code, LoginInfo loginInfo, HttpClient client, CancellationToken cancellationToken)
+        async Task<Tokens> ExchangeCodeForBearerTokenAsync(string code, HttpClient client, CancellationToken cancellationToken)
         {
             var body = new JObject
             {
@@ -255,7 +257,7 @@ namespace TeslaAuth
             string resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
-                ThrowException(result, resultContent);
+                ThrowException("ExchangeCodeForBearerTokenAsync", result, resultContent);
             }
 
             var response = JObject.Parse(resultContent);
@@ -284,13 +286,13 @@ namespace TeslaAuth
                 Content = content,
                 Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
             };
-
+            
             using var result = await client.SendAsync(request, cancellationToken);
-
+            
             string resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
-                ThrowException(result, resultContent);
+                ThrowException("ExchangeAccessTokenForBearerTokenAsync", result, resultContent);
             }
 
             var response = JObject.Parse(resultContent);
@@ -352,10 +354,11 @@ namespace TeslaAuth
             var resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
-                ThrowException(result, resultContent);
+                ThrowException("GetMfaFactorIdAsync", result, resultContent);
             }
 
             var response = JObject.Parse(resultContent);
+
             for (var i = 0; i < response["data"]!.Count(); i++)
             {
                 var mfaFactorId = response["data"]![i]!["id"]!.Value<string>();
@@ -391,10 +394,7 @@ namespace TeslaAuth
             string resultContent = await result.Content.ReadAsStringAsync();
 
             var response = JObject.Parse(resultContent);
-            /*
-            bool valid = response["data"]!["valid"]!.Value<bool>();
-            return valid;
-            */
+
             bool valid = false;
             var data = response["data"];
             if (data != null)
@@ -402,13 +402,13 @@ namespace TeslaAuth
                 valid = data["valid"]!.Value<bool>();
                 if (!valid)
                 {
-                    OnMFACodeInvalid(loginInfo.UserName, "MFA code is invalid");
+                    throw new MultiFactorAuthenticationException("MFA code is invalid");
                 }
             }
             else
             {
                 var error = response["error"];
-                OnMFACodeInvalid(loginInfo.UserName, error["message"]?.ToString());
+                throw new MultiFactorAuthenticationException(error["message"]?.ToString());
             }
             return valid;
         }
@@ -441,38 +441,6 @@ namespace TeslaAuth
             }
 
             throw new Exception(String.Format("Unable to get authorization code.  StatusCode: {0}", result.StatusCode));
-        }
-
-        public event EventHandler<MFACodeRequiredEventArgs> MFACodeRequired;
-
-        public event EventHandler<MFACodeInvalidEventArgs> MFACodeInvalid;
-
-        void OnMFACodeRequired(string username)
-        {
-            var localMFACodeRequired = MFACodeRequired;
-            if (localMFACodeRequired != null)
-            {
-                var args = new MFACodeRequiredEventArgs();
-                args.Username = username;
-                localMFACodeRequired.Invoke(null, args);
-            }
-            else
-                throw new Exception("Multi-factor code required to authenticate Tesla user " + username);
-        }
-
-        void OnMFACodeInvalid(string username, string message)
-        {
-            var localMFACodeInvalid = MFACodeInvalid;
-            if (localMFACodeInvalid != null)
-            {
-                MFACodeInvalidEventArgs args = new MFACodeInvalidEventArgs();
-                args.Username = username;
-                args.Message = message;
-                localMFACodeInvalid.Invoke(null, args);
-            }
-            else
-                throw new Exception(String.Format("Multi-factor authentication code was invalid for Tesla user {0}: {1}",
-                    username, message));
         }
         #endregion MFA helpers
 
@@ -508,12 +476,9 @@ namespace TeslaAuth
         }
 
 
-        private static void ThrowException(HttpResponseMessage result, string resultContent)
+        private static void ThrowException(String failingMethod, HttpResponseMessage result, string resultContent)
         {
-            // BUG: We have multiple code paths that call this method but our error string says everything was in RefreshTokenAsync.
-            //throw new Exception(string.IsNullOrEmpty(result.ReasonPhrase) ? result.StatusCode.ToString() : result.ReasonPhrase);
-
-            var ex = new Exception(String.Format("TeslaAuthHelper RefreshTokenAsync failed.  Status: {0}  Reason: {1}", result.StatusCode, result.ReasonPhrase));
+            var ex = new Exception(String.Format("TeslaAuthHelper {0} failed.  Status: {1}  Reason: {2}", failingMethod, result.StatusCode, result.ReasonPhrase));
             ex.Data["SerializedResponse"] = resultContent;
             ex.Data["StatusCode"] = result.StatusCode;
             throw ex;

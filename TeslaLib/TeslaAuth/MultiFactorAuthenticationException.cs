@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
-namespace TeslaLib
+namespace TeslaAuth
 {
     /// <summary>
-    /// Some accounts have MFA enabled.
+    /// Multi-factor authentication can fail in at least two ways:
+    /// 1) MFA is required for an account and we didn't supply an MFA code
+    /// 2) The MFA code entered is invalid or expired.
     /// </summary>
     public class MultiFactorAuthenticationException : Exception
     {
@@ -18,11 +18,11 @@ namespace TeslaLib
         {
         }
 
-        public MultiFactorAuthenticationException(String message, String userName) : base(message)
+        public MultiFactorAuthenticationException(String message, String accountName) : base(message)
         {
-            UserName = userName;
+            AccountName = accountName;
         }
 
-        public String UserName { get; set; }
+        public String AccountName { get; set; }
     }
 }
