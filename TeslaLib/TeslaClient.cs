@@ -384,7 +384,7 @@ namespace TeslaLib
         }
 
         // For a LoginToken that is close to expiry, this method will refresh the OAuth2 access token.  Returns a new LoginToken.
-        internal async Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken, TeslaAccountRegion region)
+        public async Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
             var tokens = await _teslaAuthHelper.RefreshTokenAsync(loginToken.RefreshToken, region);
 
