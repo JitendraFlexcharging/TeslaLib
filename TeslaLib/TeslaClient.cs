@@ -308,6 +308,16 @@ namespace TeslaLib
             return loginToken;
         }
 
+        public void LoginWithExistingToken(LoginToken loginToken)
+        {
+            if (loginToken == null)
+                throw new ArgumentNullException(nameof(loginToken));
+            if (loginToken.ExpiresUtc < DateTime.Now)
+                throw new ArgumentException("Login token provided has expired");
+
+            SetToken(loginToken);
+        }
+
         private static LoginToken ConvertTeslaAuthTokensToLoginToken(Tokens tokens)
         {
             LoginToken loginToken = new LoginToken();
