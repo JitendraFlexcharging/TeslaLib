@@ -139,6 +139,16 @@ namespace TeslaLib
                 throw blocked;
             }
 
+            // Saw this once.
+            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                var serviceDownOrAggressivelyDisconnectingUs = new Exception("Tesla's service is unavailable");
+                serviceDownOrAggressivelyDisconnectingUs.Data["StatusCode"] = response.StatusCode;
+                serviceDownOrAggressivelyDisconnectingUs.Data["Error"] = response.Content;
+                TeslaClient.Logger.WriteLine("Tesla server is either down or aggressively disconnecting us.  Message: {0}", response.Content);
+                throw serviceDownOrAggressivelyDisconnectingUs;
+            }
+
             TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error.  Status code: {0}  Response content: \"{1}\"  Content length: {2}", response.StatusCode, response.Content, response.Content.Length);
         }
 
