@@ -316,6 +316,16 @@ namespace TeslaLib.Models
                                 // Model 3 battery is sometimes listed as BT37.
                                 BatterySize = 75;
                             }
+                            else if (value2 == "38")
+                            {
+                                // Model 3 LR built in China.  Not sure about the capacity.
+                                BatterySize = 75;
+                            }
+                            else if (value2 == "42")
+                            {
+                                // M3P (and latest LR 940xxx+) 2021 model year
+                                BatterySize = 82;
+                            }
                             else
                             {
                                 int batterySize = 0;
@@ -382,10 +392,12 @@ namespace TeslaLib.Models
                         case "SC":
                             int superchargingOption = int.Parse(value2);
                             HasSuperCharging = superchargingOption > 0;  // Note: One web site claims SC00 may mean you have supercharging...
-                            if (superchargingOption == 5)
+                            if (superchargingOption == 1 || superchargingOption == 5)
                                 FreeSupercharging = true;
                             else if (superchargingOption == 4)
                                 PayPerUseSupercharging = true;
+                            else if (superchargingOption == 6)
+                                FreeSupercharging = true;  // Temporarily enabled, may be disabled soon.
                             break;
                         case "TP":
                             HasTechPackage = int.Parse(value2) > 0;
@@ -476,14 +488,28 @@ namespace TeslaLib.Models
                         case "CO": // Country code.  Not required nor currently exposed, but nice to know this option exists.
                             switch (value2)
                             {
-                                case "US":
-                                    // United States
+                                case "US":  // United States
+                                case "AT":  // Australia
+                                case "NL":  // Netherlands
+                                case "BE":  // Belgium
+                                case "CH":  // Switzerland
+                                case "DE":  // Germany
+                                case "DK":  // Denmark
+                                case "ES":  // Spain
+                                case "FI":  // Finland
+                                case "FR":  // France
+                                case "GB":  // Great Britain
+                                case "HR":  // Croatia
+                                case "IE":  // Ireland
+                                case "IT":  // Italy
+                                case "LU":  // Luxembourg
+                                case "NO":  // Norway
+                                case "PT":  // Portugal
+                                case "SE":  // Sweden
                                     break;
-                                case "NL":
-                                    // Netherlands
-                                    break;
+
                                 default:
-                                    Console.Error.WriteLine($"Unrecognized country code \"{value2}\".");
+                                    Console.Error.WriteLine($"Unrecognized Tesla country code in vehicle options \"{value2}\".");
                                     break;
                             }
                             break;
