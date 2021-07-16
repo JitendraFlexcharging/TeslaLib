@@ -439,7 +439,10 @@ namespace TeslaLib
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 UnauthorizedHandler(response);
 
-            if (response.Content.Length == 0)
+            if (!response.IsSuccessful)
+                HandleKnownFailures(response);
+
+            if (response.Content == null || response.Content.Length == 0)
                 throw new FormatException("Tesla's response was empty.");
 
             List<TeslaVehicle> data = null;
@@ -451,9 +454,7 @@ namespace TeslaLib
             }
             catch (Exception e)
             {
-                HandleKnownFailures(response);
-
-                TeslaClient.Logger.WriteLine("TeslaClient.LoadVehiclesAsync failed to parse and deserialize contents: \"" + response.Content + "\"");
+                TeslaClient.Logger.WriteLine("TeslaClient.LoadVehiclesAsync failed to parse and deserialize contents: \"" + response.Content + "\"  StatusCode: " + response.StatusCode);
                 if (response.Content.Contains(InternalServerErrorMessage))
                 {
                     var tse = new TeslaServerException();
