@@ -49,6 +49,19 @@ namespace TeslaLib.Models
     // "max_limit_mph":90,"min_limit_mph":50,"pin_code_set":false},"summon_standby_mode_enabled":true,"timestamp":1595713699831,"valet_mode":false,
     // "valet_pin_needed":true,"vehicle_name":"The X"}}
     // However Locked came back as null for some reason.  (Maybe a throttling related thing.)
+    //
+    // July 2021, 2018 Model 3 Performance:
+    // {"response":{"api_version":15,"autopark_state_v3":"standby","autopark_style":"dead_man","calendar_supported":true,
+    // "car_version":"2021.4.18.2 6c676ce09ea5","center_display_state":0,"df":0,"dr":0,"fd_window":0,"fp_window":0,"ft":0,
+    // "homelink_device_count":2,"homelink_nearby":true,"is_user_present":false,"last_autopark_error":"no_error","locked":true,
+    // "media_state":{"remote_control_enabled":true},"notifications_supported":true,"odometer":12916.582152,
+    // "parsed_calendar_supported":true,"pf":0,"pr":0,"rd_window":0,"remote_start":false,"remote_start_enabled":true,
+    // "remote_start_supported":true,"rp_window":0,"rt":0,"sentry_mode":false,"sentry_mode_available":true,
+    // "smart_summon_available":true,
+    // "software_update":{ "download_perc":0,"expected_duration_sec":2700,"install_perc":1,"status":"","version":"2021.4.18.2"},
+    // "speed_limit_mode":{ "active":false,"current_limit_mph":90.0,"max_limit_mph":90,"min_limit_mph":50.0,"pin_code_set":false},
+    // "summon_standby_mode_enabled":true,"timestamp":1626935355834,"valet_mode":false,"valet_pin_needed":true,
+    // "vehicle_name":"Blue Lightning"}}
     public class VehicleStateStatus
     {
         [JsonProperty(PropertyName = "df")]
