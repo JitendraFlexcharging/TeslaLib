@@ -140,6 +140,7 @@ namespace TeslaAuth
             {
                 {"grant_type", "refresh_token"},
                 {"client_id", "ownerapi"},
+                {"client_secret", TESLA_CLIENT_SECRET },
                 {"refresh_token", refreshToken},
                 {"scope", "openid email offline_access"}
             };
@@ -224,9 +225,25 @@ namespace TeslaAuth
 
                     return await GetAuthorizationCodeWithMfaAsync(mfaCode, loginInfo, client, cancellationToken);
                 }
+                else if (result.StatusCode == HttpStatusCode.OK)
+                {
+                    // CAPTCHA requirement, probably.
+                    bool hasCaptcha = resultContent.Contains("captcha");
+                    bool hasRedirectLocation = result.Headers.Location != null;
+                    if (!hasCaptcha)
+                    {
+                        // This is unexpected.  What is this?
+                        throw new Exception("Can't log in - expected redirect did not occur.  hasRedirect: "+hasRedirectLocation);
+                    }
+                    throw new Exception("Can't log in - Tesla CAPTCHA support needed.");
+                }
                 else
                 {
-                    throw new Exception("Expected redirect did not occur.  Status code: " + result.StatusCode);
+                    // Possible causes for ending up here:
+                    // 1) Account could require an MFA code and we didn't provide it, maybe.  Captcha check may come first though.
+                    // What happens with the wrong MFA code?  Does that come here?
+                    // We believe cases like the account being locked fall into a different codepath below.
+                    throw new Exception("Expected redirect did not occur - probably need multi-factor authentication code.  Status code: " + result.StatusCode);
                 }
             }
 
