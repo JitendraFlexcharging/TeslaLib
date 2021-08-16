@@ -53,7 +53,21 @@ namespace TeslaLib
         internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
         internal const String RetryLaterMessage = "Retry later";
         internal const String BlockedMessage = "Blocked";
+        // add "login_required" here for an expired token:
+        // Exception: TeslaAuthHelper RefreshTokenAsync failed.  Status: Unauthorized  Reason: Unauthorized  Serialized response: {"error":"login_required","error_description":"Login required","error_uri":"https://auth.tesla.com/error/reference/ae25acf2-2486-43b0-bc95-3c4e9142ad7e-1628758009290"}
 
+        // Add the cloud forbidden code here:
+        /*
+        TeslaLib couldn't refresh a login token while logging in for account "omitted".  Will try to log in again.  Token created at: 4/4/2021 6:50:32 AM  Expires: 5/19/2021 6:50:32 AM  Exception: TeslaAuthHelper RefreshTokenAsync failed.  Status: Forbidden  Reason: Forbidden  Serialized response: <HTML><HEAD>
+        <TITLE>Access Denied</TITLE>
+        </HEAD><BODY>
+        <H1>Access Denied</H1>
+
+        You don't have permission to access "http&#58;&#47;&#47;auth&#46;tesla&#46;com&#47;oauth2&#47;v3&#47;token" on this server.<P>
+        Reference&#32;&#35;18&#46;b7622317&#46;1628736600&#46;962b0d1
+        </BODY>
+        </HTML>
+        */
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
