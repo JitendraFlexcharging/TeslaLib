@@ -69,7 +69,8 @@ namespace TeslaLib
         </HTML>
         */
 
-        public TeslaClient(string email, string teslaClientId, string teslaClientSecret, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
+        public TeslaClient(string email, string teslaClientId, string teslaClientSecret, 
+            TeslaAccountRegion region = TeslaAccountRegion.Unknown, TeslaAuthHelper authHelper = null)
         {
             Email = email;
             TeslaClientId = teslaClientId;
@@ -78,8 +79,12 @@ namespace TeslaLib
             Client = new RestClient(BaseUrl);
             Client.Authenticator = new TeslaAuthenticator();
 
-            String userAgent = "FlexCharging.com";  // This works with a '.' in the name, but requests hang without the '.'!
-            _teslaAuthHelper = new TeslaAuthHelper(userAgent, region);
+            // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
+            // strings seems to be "product/version lots of other stuff".  Chrome uses this for its user agent string:
+            // Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+            String userAgent = "FlexCharging/1.0";
+
+            _teslaAuthHelper = authHelper ?? new TeslaAuthHelper(userAgent, region);
         }
 
         public static IOAuthTokenStore OAuthTokenStore
