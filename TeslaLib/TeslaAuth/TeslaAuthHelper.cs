@@ -79,10 +79,13 @@ namespace TeslaAuth
         #region Public API for browser-assisted auth
         public string GetLoginUrlForBrowser()
         {
+            if (client == null || String.IsNullOrWhiteSpace(client.BaseAddress.ToString()))
+                throw new InvalidOperationException("TeslaAuthHelper HTTP client not initialized correctly");
+
             var code_challenge_SHA256 = ComputeSHA256Hash(loginInfo.CodeVerifier);
             loginInfo.CodeChallenge = Convert.ToBase64String(Encoding.Default.GetBytes(code_challenge_SHA256));
 
-            var b = new UriBuilder(client.BaseAddress + "/oauth2/v3/authorize") { Port = -1 };
+            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") { Port = -1 };
 
             var q = HttpUtility.ParseQueryString(b.Query);
             q["client_id"] = "ownerapi";
@@ -359,7 +362,7 @@ namespace TeslaAuth
 
         async Task<string> GetMfaFactorIdAsync(string mfaCode, LoginInfo loginInfo, HttpClient client, CancellationToken cancellationToken)
         {
-            var b = new UriBuilder(client.BaseAddress + "/oauth2/v3/authorize/mfa/factors") {Port = -1};
+            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize/mfa/factors") {Port = -1};
 
             var q = HttpUtility.ParseQueryString(b.Query);
             q["transaction_id"] = loginInfo.FormFields["transaction_id"];
