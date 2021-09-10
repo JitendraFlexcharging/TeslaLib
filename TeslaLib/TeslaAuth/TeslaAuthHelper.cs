@@ -1,5 +1,4 @@
-﻿// Code from https://github.com/briangru/TeslaAuth, with work from bassmaster187, Tom Hollander, briangru, and Ramon Smits
-// Helper library to authenticate to Tesla Owner API 
+﻿// Helper library to authenticate to Tesla Owner API 
 // Includes support for MFA.
 
 // This code is heavily based on Christian P (https://github.com/bassmaster187)'s
@@ -140,7 +139,7 @@ namespace TeslaAuth
             {
                 {"grant_type", "refresh_token"},
                 {"client_id", "ownerapi"},
-                {"client_secret", TESLA_CLIENT_SECRET },
+                //{"client_secret", TESLA_CLIENT_SECRET },
                 {"refresh_token", refreshToken},
                 {"scope", "openid email offline_access"}
             };
@@ -233,7 +232,7 @@ namespace TeslaAuth
                     if (!hasCaptcha)
                     {
                         // This is unexpected.  What is this?
-                        throw new Exception("Can't log in - expected redirect did not occur.  hasRedirect: "+hasRedirectLocation);
+                        throw new Exception("Can't log in - expected redirect did not occur.  hasRedirect: " + hasRedirectLocation);
                     }
                     throw new Exception("Can't log in - Tesla CAPTCHA support needed.");
                 }
