@@ -113,6 +113,25 @@ namespace TeslaLib
             return Task.CompletedTask;
         }
 
+        public Task<bool> DeleteSpecificTokenAsync(string emailAddress, LoginToken token)
+        {
+            bool deleted = false;
+            lock (CacheLock)
+            {
+                if (Tokens.TryGetValue(emailAddress, out var foundToken))
+                {
+                    if (token.AccessToken == foundToken.AccessToken)
+                    {
+                        deleted = Tokens.Remove(emailAddress);
+                    }
+
+                    if (OSSupportsTokenCache)
+                        WriteCacheFile();
+                }
+            }
+            return Task.FromResult(deleted);
+        }
+
         public void ClearCache()
         {
             lock (CacheLock)
@@ -169,6 +188,26 @@ namespace TeslaLib
 
                 var readOnlyWrapper = new ReadOnlyDictionary<String, LoginToken>(Tokens);
                 return Task.FromResult(readOnlyWrapper);
+            }
+        }
+
+        public Task<IReadOnlyList<LoginToken>> GetAllTokensForUserAsync(string emailAddress)
+        {
+            lock (CacheLock)
+            {
+                if (!_haveReadCacheFile && OSSupportsTokenCache)
+                {
+                    ReadCacheFile();
+                    _haveReadCacheFile = true;
+                }
+
+                if (Tokens.TryGetValue(emailAddress, out var loginToken))
+                {
+                    IReadOnlyList<LoginToken> readOnlyWrapper = new List<LoginToken>() { loginToken };
+                    return Task.FromResult(readOnlyWrapper);
+                }
+                else
+                    return Task.FromResult((IReadOnlyList<LoginToken>) new List<LoginToken>());
             }
         }
     }
