@@ -20,6 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
+using TeslaLib;
 
 namespace TeslaAuth
 {
@@ -174,7 +175,8 @@ namespace TeslaAuth
             var formFields = new Dictionary<string, string>();
             foreach (Match match in hiddenFields)
             {
-                formFields.Add(match.Groups[1].Value, match.Groups[2].Value);
+                // Around October 2021 Tesla started showing duplicate hidden fields in the page.  They had the same value.
+                formFields[match.Groups[1].Value] = match.Groups[2].Value;
             }
 
             loginInfo.FormFields = formFields;
@@ -229,15 +231,20 @@ namespace TeslaAuth
                 }
                 else if (result.StatusCode == HttpStatusCode.OK)
                 {
-                    // CAPTCHA requirement, probably.
+                    // CAPTCHA requirement, probably.  The exact behavior here is still being discovered.
                     bool hasCaptcha = resultContent.Contains("captcha");
+                    bool hasReCaptcha = resultContent.Contains("recaptcha");
                     bool hasRedirectLocation = result.Headers.Location != null;
                     if (!hasCaptcha)
                     {
                         // This is unexpected.  What is this?
-                        throw new Exception("Can't log in - expected redirect did not occur.  hasRedirect: " + hasRedirectLocation);
+                        throw new Exception("Can't log in with Tesla - expected redirect did not occur.  hasRedirect: " + hasRedirectLocation);
                     }
-                    throw new Exception("Can't log in - Tesla CAPTCHA support needed.");
+                    if (hasReCaptcha)
+                    {
+                        throw new TeslaAuthenticationException($"Please re-enter your Tesla account credentials for account {username}.");
+                    }
+                    throw new Exception("Can't log in with Tesla - CAPTCHA support needed.");
                 }
                 else
                 {
