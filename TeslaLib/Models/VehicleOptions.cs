@@ -129,6 +129,9 @@ namespace TeslaLib.Models
             // In August 2019, a Model S started returning that it was a Model 3!  Here's the inconsistent, incorrectly reported Model S.
             // AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,AU3P,APH3,AF00,ZCST,MI00,CDM0
 
+            // From Tim Dorr's API documentation site:
+            // As of August 2019, Option Codes cannot be relied on. Vehicles now return a generic set of codes related to a Model 3.
+
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
@@ -187,7 +190,10 @@ namespace TeslaLib.Models
                         case "X042":
                             // Has Auto Presenting Door (probably Model X only)
                             continue;
-                        case "DV4W":
+                        case "DV2W":  // 2 wheel drive
+                            AllWheelDrive = false;
+                            continue;
+                        case "DV4W":  // 4 wheel drive
                             AllWheelDrive = true;
                             continue;
                         case "MDLX":
@@ -196,10 +202,12 @@ namespace TeslaLib.Models
                         case "MDLS":
                             //Model = Model.S;
                             continue;
-                        case "MDL3":  // I don't know this is the right option code, but it seems probable.
-                            // Now everything seems to return MDL3.
+                        case "MDL3":  // Problem - my Model S thinks it's a Model 3.  Determine car type through other means.
                             //Model = Model.Three;
                             continue;
+                        case "MDLY":
+                            //Model = Model.Y;
+                            break;
                         case "PX6D":  // Zero to 60 in 2.5 sec
                             continue;
                         case "P85D":  // Model S?  Skip for now.
@@ -306,8 +314,20 @@ namespace TeslaLib.Models
                                         BatterySize = 85;
                                         break;
 
+                                    case '9':
+                                        BatterySize = 100;
+                                        break;
+
+                                    case 'A':
+                                        BatterySize = 100;  // 2020 Model X battery
+                                        break;
+
+                                    case 'B':
+                                        BatterySize = 100;  // Model S Plaid 2021
+                                        break;
+
                                     default:
-                                        Console.Error.WriteLine($"Cannot parse battery type option \"{option}\".");
+                                        Console.Error.WriteLine($"Cannot parse Tesla battery type option \"{option}\".");
                                         break;
                                 }
                             }
@@ -325,6 +345,10 @@ namespace TeslaLib.Models
                             {
                                 // M3P (and latest LR 940xxx+) 2021 model year
                                 BatterySize = 82;
+                            }
+                            else if (value2 == "F0")
+                            {
+                                BatterySize = 55;  // Made in China CATL Iron Phosphate battery, Model 3 Standard+
                             }
                             else
                             {
@@ -428,12 +452,36 @@ namespace TeslaLib.Models
                                 case "05":
                                     ChargerLimit = 48;  // Model S/X
                                     break;
+                                case "06":
+                                    ChargerLimit = 32;  // Guess.  Not documented.
+                                    break;
                                 case "07":
                                     ChargerLimit = 48;  // Model 3
                                     break;
+                                case "09":
+                                    ChargerLimit = 48;  // EU Model S charging system.  Guessing on limit though!
+                                    break;
+                                case "12":
+                                    ChargerLimit = 48;  // 48 Amp Combo 1 gen 3.5 charger
+                                    break;
+                                case "14":
+                                    ChargerLimit = 40;  // This isn't documented but is showing up.  Guessing at 40.
+                                    break;
+                                case "15":
+                                    ChargerLimit = 48;
+                                    break;
+                                case "16":
+                                    ChargerLimit = 48;  // This isn't documented but is showing up.  Complete guess
+                                    break;
                                 default:
                                     Console.Error.WriteLine($"Unrecognized Tesla charger limit type.  Vehicle Option {option}");
-                                    File.AppendAllText("c:\\TeslaOptionCodes.txt", "Unrecognized Tesla charger limit value: " + value2);
+                                    try
+                                    {
+                                        // Don't try writing this file on a phone.
+                                        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                                            File.AppendAllText("c:\\TeslaOptionCodes.txt", "Unrecognized Tesla charger limit value: " + value2 + "\r\n");
+                                    }
+                                    catch { }
                                     break;
                             }
                             break;
@@ -458,8 +506,12 @@ namespace TeslaLib.Models
                                 HasLudicrous = false;
                             else if (value2 == "01")
                                 HasLudicrous = true;
+                            else if (value2 == "02")
+                            {
+                                // "Uncorked" acceleration (non-performance)
+                            }
                             else
-                                Console.Error.WriteLine($"Unrecognized option {option}.  Ludicrous-like speed option?");
+                                Console.Error.WriteLine($"Unrecognized Tesla option {option}.  Ludicrous-like speed option?");
                             break;
                         case "AF":
                             if (value2 == "02")
@@ -489,7 +541,8 @@ namespace TeslaLib.Models
                             switch (value2)
                             {
                                 case "US":  // United States
-                                case "AT":  // Australia
+                                case "AT":  // Austria
+                                case "AU":  // Australia
                                 case "NL":  // Netherlands
                                 case "BE":  // Belgium
                                 case "CH":  // Switzerland
