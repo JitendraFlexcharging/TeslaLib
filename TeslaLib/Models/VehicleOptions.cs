@@ -461,6 +461,9 @@ namespace TeslaLib.Models
                                 case "09":
                                     ChargerLimit = 48;  // EU Model S charging system.  Guessing on limit though!
                                     break;
+                                case "11":
+                                    ChargerLimit = 48;  // Unknown - complete guess.
+                                    break;
                                 case "12":
                                     ChargerLimit = 48;  // 48 Amp Combo 1 gen 3.5 charger
                                     break;
@@ -543,7 +546,6 @@ namespace TeslaLib.Models
                                 case "US":  // United States
                                 case "AT":  // Austria
                                 case "AU":  // Australia
-                                case "NL":  // Netherlands
                                 case "BE":  // Belgium
                                 case "CH":  // Switzerland
                                 case "DE":  // Germany
@@ -555,7 +557,9 @@ namespace TeslaLib.Models
                                 case "HR":  // Croatia
                                 case "IE":  // Ireland
                                 case "IT":  // Italy
+                                case "KR":  // South Korea
                                 case "LU":  // Luxembourg
+                                case "NL":  // Netherlands
                                 case "NO":  // Norway
                                 case "PT":  // Portugal
                                 case "SE":  // Sweden
