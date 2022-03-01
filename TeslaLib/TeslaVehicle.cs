@@ -462,8 +462,11 @@ namespace TeslaLib
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 TeslaClient.ReportUnauthorizedAccess(response, false, null);
 
+            if (!response.IsSuccessful)
+                ReportKnownErrors(response);
+
             if (response.Content.Length == 0)
-                throw new FormatException("Tesla's response was empty.");
+                throw new FormatException($"Tesla didn't provide data.  Error: {response.StatusCode}");
 
             try
             {
