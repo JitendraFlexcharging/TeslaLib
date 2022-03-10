@@ -108,9 +108,16 @@ namespace TeslaLib
                 if (errorJson != null)
                 {
                     error = errorJson.ToString();
+                    // Two example strings with a different format:
+                    // vehicle unavailable: {:error=>"vehicle unavailable:"}
+                    // {"error": "timeout"}
                     if (error != null)
-                        error = ":  " + error.Split(':')[0];
-
+                    {
+                        if (error.StartsWith("{\"error\":"))
+                            error = ": " + error.Substring(10, error.Length - 2);
+                        else
+                            error = ": " + error.Split(':')[0];
+                    }
                 }
                 throw new TimeoutException("Timeout accessing a Tesla vehicle" + error);
             }
