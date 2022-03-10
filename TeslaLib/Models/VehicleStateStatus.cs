@@ -62,6 +62,26 @@ namespace TeslaLib.Models
     // "speed_limit_mode":{ "active":false,"current_limit_mph":90.0,"max_limit_mph":90,"min_limit_mph":50.0,"pin_code_set":false},
     // "summon_standby_mode_enabled":true,"timestamp":1626935355834,"valet_mode":false,"valet_pin_needed":true,
     // "vehicle_name":"Blue Lightning"}}
+    //
+    // March 2022, 2018 Model 3 Performance
+    // {"response":{"api_version":34,"autopark_state_v3":"standby","autopark_style":"dead_man","calendar_supported":true,
+    // "car_version":"2022.4.5 61d7c2a49709","center_display_state":0,
+    // NEW ->  "dashcam_clip_save_available":false,"dashcam_state":"Unavailable",
+    // "df":0,"dr":0,"fd_window":0,"fp_window":0,"ft":0,
+    // "homelink_device_count":2,"homelink_nearby":true,"is_user_present":false,"last_autopark_error":"no_error","locked":true,
+    // "media_state":{"remote_control_enabled":true},"notifications_supported":true,"odometer":15026.154849,
+    // "parsed_calendar_supported":true,"pf":0,"pr":0,"rd_window":0,"remote_start":false,"remote_start_enabled":true,
+    // "remote_start_supported":true,"rp_window":0,"rt":0,
+    // NEW -> "santa_mode":0,
+    // "sentry_mode":false,"sentry_mode_available":true,
+    // "smart_summon_available":true,
+    // "software_update":{"download_perc":0,"expected_duration_sec":2700,"install_perc":1,"status":"","version":" "},
+    // "speed_limit_mode":{"active":false,"current_limit_mph":90.0,"max_limit_mph":90,"min_limit_mph":50.0,"pin_code_set":false},
+    // "summon_standby_mode_enabled":true,"timestamp":1646893543086,
+    // NEW -> "tpms_pressure_fl":null,"tpms_pressure_fr":null,"tpms_pressure_rl":null,"tpms_pressure_rr":null,
+    // "valet_mode":false,"valet_pin_needed":true,
+    // "vehicle_name":"Blue Lightning",
+    // NEW -> "vehicle_self_test_progress":0,"vehicle_self_test_requested":false,"webcam_available":false}}
     public class VehicleStateStatus
     {
         [JsonProperty(PropertyName = "df")]

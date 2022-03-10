@@ -156,11 +156,16 @@ namespace TeslaConsole
                 Console.WriteLine($" State of charge: {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
                 Console.WriteLine($" Charging state: {(chargeState.ChargingState.HasValue ? chargeState.ChargingState.Value.ToString() : "unknown")}");
                 Console.WriteLine($"  Time until full charge: {chargeState.TimeUntilFullCharge} hours ({60*chargeState.TimeUntilFullCharge} minutes)  Usable battery level: {chargeState.UsableBatteryLevel}%");
-                Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}");
-                Console.WriteLine($" Scheduled departure time: {chargeState.ScheduledDepartureTime}");
+                Console.WriteLine($" Scheduled charging mode: {chargeState.ScheduledChargingMode}");
+                Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}  Minutes: {chargeState.ScheduledChargingStartTimeMinutes}");
+                Console.WriteLine($"    Scheduled charging start time app: {chargeState.ScheduledChargingStartTimeApp}");
+                Console.WriteLine($" Scheduled departure time: {chargeState.ScheduledDepartureTime}  Minutes: {chargeState.ScheduledDepartureTimeMinutes}");
                 Console.WriteLine($" Scheduled charging pending? {chargeState.ScheduledChargingPending}");
                 Console.WriteLine($" Managed charging active? {chargeState.ManagedChargingActive}  Managed charging start time? {chargeState.ManagedChargingStartTime}");
                 Console.WriteLine($" Managed charging user canceled? {chargeState.ManagedChargingUserCanceled}");
+                Console.WriteLine($" Off-peak charging enabled?  {chargeState.OffPeakChargingEnabled}");
+                Console.WriteLine($" Off-peak charging times: {chargeState.OffPeakChargingTimes}  End time: {chargeState.OffPeakHoursEndTime}");
+                Console.WriteLine($" Preconditioning enabled? {chargeState.PreconditioningEnabled}  Times: {chargeState.PreconditioningTimes}");
 
                 var driveState = car.LoadDriveStateStatus();
                 Console.WriteLine("  Shift state: {0}", driveState.ShiftState);

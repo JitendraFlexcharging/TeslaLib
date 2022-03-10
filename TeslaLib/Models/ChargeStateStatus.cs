@@ -117,7 +117,22 @@ namespace TeslaLib.Models
      * "managed_charging_active":false,"managed_charging_start_time":null,"managed_charging_user_canceled":false,
      * "scheduled_charging_pending":true,"scheduled_charging_start_time":1573649400,"scheduled_departure_time":1573671600,
      */
-
+    /* Mar 2022
+     * 2018 Model 3, scheduled charging enabled.
+     * "managed_charging_active":false,"managed_charging_start_time":null,"managed_charging_user_canceled":false,
+     * "scheduled_charging_mode":"StartAt","scheduled_charging_pending":true,"scheduled_charging_start_time":1646897400,
+     * "scheduled_charging_start_time_app":1410,"scheduled_charging_start_time_minutes":1410,
+     * "scheduled_departure_time":1646161200,"scheduled_departure_time_minutes":660,
+     * 
+     * Scheduled departure time enabled with off-peak charging:
+     * "off_peak_charging_enabled":true,"off_peak_charging_times":"all_week","off_peak_hours_end_time":360,
+     * "preconditioning_enabled":false,"preconditioning_times":"all_week",
+     * A consistent set of values where the app was set for scheduled charge start time at 11:30 PM, then
+     * we disabled that feature and set up a scheduled departure time.
+     * Scheduled charging mode: DepartBy
+     * Scheduled charging time: 3/10/2022 3:25:00 AM  Minutes: 205
+     * Scheduled charging start time app: 1410  (11:30 PM in minutes)
+     */
     public class ChargeStateStatus
     {
         // Note: the ChargingState started coming back as null around June 2017, coinciding with a significant
@@ -209,6 +224,25 @@ namespace TeslaLib.Models
         [JsonConverter(typeof(UnixTimestampConverter))]
         public DateTime? ScheduledDepartureTime { get; set; }
 
+        // This is a time of day in minutes.  IE, 660 is 11:00 AM
+        // Seems like this is redundant with scheduled_charging_start_time_minutes.
+        [JsonProperty(PropertyName = "scheduled_departure_time_minutes")]
+        public int? ScheduledDepartureTimeMinutes { get; set; }
+
+        // This is a time of day in minutes.  IE, 1410 is 11:30 PM (23.5 hours)
+        // Seems like this is redundant with scheduled_charging_start_time_minutes.
+        [JsonProperty(PropertyName = "scheduled_charging_start_time_app")]
+        public int? ScheduledChargingStartTimeApp { get; set; }
+
+        // This is a time of day in minutes.  IE, 1410 is 11:20 PM (23.5 hours)
+        [JsonProperty(PropertyName = "scheduled_charging_start_time_minutes")]
+        public int? ScheduledChargingStartTimeMinutes { get; set; }
+
+        [JsonProperty(PropertyName = "scheduled_charging_mode")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ScheduledChargingMode ScheduledChargingMode { get; set; }
+
+
         // Hours
         [JsonProperty(PropertyName = "time_to_full_charge")]
         public double? TimeUntilFullCharge { get; set; }
@@ -278,5 +312,22 @@ namespace TeslaLib.Models
 
         [JsonProperty(PropertyName = "fast_charger_brand")]
         public string FastChargerBrand { get; set; }  // "<invalid>"
+
+        [JsonProperty(PropertyName = "off_peak_charging_enabled")]
+        public bool OffPeakChargingEnabled { get; set; }
+
+        [JsonProperty(PropertyName = "off_peak_charging_times")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public WeekTimes OffPeakChargingTimes { get; set; }
+
+        // Time of day in minutes
+        [JsonProperty(PropertyName = "off_peak_hours_end_time")]
+        public int? OffPeakHoursEndTime { get; set; }
+
+        [JsonProperty(PropertyName = "preconditioning_enabled")]
+        public bool PreconditioningEnabled { get; set; }
+
+        [JsonProperty(PropertyName = "preconditioning_times")]
+        public WeekTimes PreconditioningTimes { get; set; }
     }
 }
