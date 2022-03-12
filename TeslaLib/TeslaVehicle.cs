@@ -101,25 +101,15 @@ namespace TeslaLib
 
             if (response.StatusCode == HttpStatusCode.RequestTimeout)
             {
-                // An example
-                // "error":"vehicle unavailable: {:error=>\"vehicle unavailable:\"}"
-                var errorJson = JObject.Parse(response.Content)["error"];
-                String error = String.Empty;
-                if (errorJson != null)
-                {
-                    error = errorJson.ToString();
-                    // Two example strings with a different format:
-                    // vehicle unavailable: {:error=>"vehicle unavailable:"}
-                    // {"error": "timeout"}
-                    if (error != null)
-                    {
-                        if (error.StartsWith("{\"error\":\""))
-                            error = ": " + error.Substring(10, Math.Max(error.Length - 2, 0));
-                        else
-                            error = ": " + error.Split(':')[0];
-                    }
-                }
-                throw new TimeoutException("Timeout accessing a Tesla vehicle" + error);
+                // Multiple examples, including one that looks just messed up from Tesla's side
+                // {"error": "timeout"}    // Timeout accessing a Tesla vehicle: {"error": "timeout"}
+                // "error":"vehicle unavailable: {:error=>\"vehicle unavailable:\"}"    <----  Likely the Tesla is asleep.
+                String errorMessage = ParseErrorFromJson(response);
+                //TeslaClient.Logger.WriteLine("TeslaLib debug: RequestTimeout handling.  Error: {0}  Content: {1}", errorMessage, response.Content);
+                String timeoutMessage = "Timeout accessing a Tesla vehicle";
+                if (!String.IsNullOrWhiteSpace(errorMessage) && errorMessage != "{\"error\": \"timeout\"}")
+                    timeoutMessage += ": " + errorMessage;
+                throw new TimeoutException(timeoutMessage);
             }
 
             if (response.Content == TeslaClient.ThrottlingMessage || response.StatusCode == HttpStatusCode.TooManyRequests)
@@ -160,8 +150,7 @@ namespace TeslaLib
             {
                 // {"response":null,"error":"vehicle is currently in service","error_description":""}
                 String errorMessage = ParseErrorFromJson(response);
-                TeslaClient.Logger.WriteLine("TeslaLib blorf debug: Vehicle is in service handling.  Error: {0}", errorMessage);
-                if (errorMessage != null)
+                if (!String.IsNullOrWhiteSpace(errorMessage))
                     throw new VehicleNotAvailableException(errorMessage);
                 else
                     throw new VehicleNotAvailableException();
@@ -171,7 +160,7 @@ namespace TeslaLib
             {
                 // {"response":null,"error":"not_found","error_description":""}
                 String errorMessage = ParseErrorFromJson(response);
-                if (errorMessage != null && errorMessage != "not_found")
+                if (!String.IsNullOrWhiteSpace(errorMessage) && errorMessage != "not_found")
                     throw new VehicleNotFoundException(errorMessage);
                 else
                     throw new VehicleNotFoundException();
@@ -183,21 +172,10 @@ namespace TeslaLib
         private static string ParseErrorFromJson(IRestResponse response)
         {
             var errorJson = JObject.Parse(response.Content)["error"];
-            if (errorJson != null)
-            {
-                String error = errorJson.ToString();
-                if (error.StartsWith('{') && error.EndsWith('}'))
-                    error = error.Substring(1, error.Length - 2);
-                var parts = error.Split(',');
-                foreach (var part in parts)
-                {
-                    if (part.StartsWith("\"error\":\""))
-                    {
-                        var errorMessage = part.Substring(9, Math.Max(0, part.Length - 9 - 1));
-                        return errorMessage;
-                    }
-                }
-            }
+            var error = errorJson.ToString();
+            TeslaClient.Logger.WriteLine("TeslaLib ParseErrorFromJson debugging: error: {0}", error);
+            if (!String.IsNullOrWhiteSpace(error))
+                return error;
             return null;
         }
 
