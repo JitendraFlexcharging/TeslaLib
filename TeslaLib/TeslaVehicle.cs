@@ -113,8 +113,8 @@ namespace TeslaLib
                     // {"error": "timeout"}
                     if (error != null)
                     {
-                        if (error.StartsWith("{\"error\":"))
-                            error = ": " + error.Substring(10, error.Length - 2);
+                        if (error.StartsWith("{\"error\":\""))
+                            error = ": " + error.Substring(10, Math.Max(error.Length - 2, 0));
                         else
                             error = ": " + error.Split(':')[0];
                     }
@@ -156,7 +156,49 @@ namespace TeslaLib
                 throw serviceDownOrAggressivelyDisconnectingUs;
             }
 
+            if (response.StatusCode == HttpStatusCode.MethodNotAllowed)
+            {
+                // {"response":null,"error":"vehicle is currently in service","error_description":""}
+                String errorMessage = ParseErrorFromJson(response);
+                TeslaClient.Logger.WriteLine("TeslaLib blorf debug: Vehicle is in service handling.  Error: {0}", errorMessage);
+                if (errorMessage != null)
+                    throw new VehicleNotAvailableException(errorMessage);
+                else
+                    throw new VehicleNotAvailableException();
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                // {"response":null,"error":"not_found","error_description":""}
+                String errorMessage = ParseErrorFromJson(response);
+                if (errorMessage != null && errorMessage != "not_found")
+                    throw new VehicleNotFoundException(errorMessage);
+                else
+                    throw new VehicleNotFoundException();
+            }
+
             TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error.  Status code: {0}  Response content: \"{1}\"  Content length: {2}", response.StatusCode, response.Content, response.Content.Length);
+        }
+
+        private static string ParseErrorFromJson(IRestResponse response)
+        {
+            var errorJson = JObject.Parse(response.Content)["error"];
+            if (errorJson != null)
+            {
+                String error = errorJson.ToString();
+                if (error.StartsWith('{') && error.EndsWith('}'))
+                    error = error.Substring(1, error.Length - 2);
+                var parts = error.Split(',');
+                foreach (var part in parts)
+                {
+                    if (part.StartsWith("\"error\":\""))
+                    {
+                        var errorMessage = part.Substring(9, Math.Max(0, part.Length - 9 - 1));
+                        return errorMessage;
+                    }
+                }
+            }
+            return null;
         }
 
         public ChargeStateStatus LoadChargeStateStatus()
