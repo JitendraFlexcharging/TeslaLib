@@ -185,7 +185,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<ChargeStateStatus>(response);
+            return ParseResult<ChargeStateStatus>(response, timeoutMeansReturnNull: true);
         }
 
         public ClimateStateStatus LoadClimateStateStatus()
@@ -194,7 +194,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<ClimateStateStatus>(response);
+            return ParseResult<ClimateStateStatus>(response, timeoutMeansReturnNull: true);
         }
 
         public DriveStateStatus LoadDriveStateStatus()
@@ -203,7 +203,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<DriveStateStatus>(response);
+            return ParseResult<DriveStateStatus>(response, timeoutMeansReturnNull: true);
         }
 
         public GuiSettingsStatus LoadGuiStateStatus()
@@ -212,7 +212,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<GuiSettingsStatus>(response);
+            return ParseResult<GuiSettingsStatus>(response, timeoutMeansReturnNull: true);
         }
 
         public VehicleConfig LoadVehicleConfig()
@@ -221,7 +221,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<VehicleConfig>(response);
+            return ParseResult<VehicleConfig>(response, timeoutMeansReturnNull: true);
         }
 
         public VehicleStateStatus LoadVehicleStateStatus()
@@ -230,7 +230,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<VehicleStateStatus>(response);
+            return ParseResult<VehicleStateStatus>(response, timeoutMeansReturnNull: true);
         }
 
         #endregion State and Settings
@@ -484,14 +484,19 @@ namespace TeslaLib
             return ParseResult<ResultStatus>(response);
         }
 
-        private T ParseResult<T>(IRestResponse response)
+        private T ParseResult<T>(IRestResponse response, bool timeoutMeansReturnNull=false)
         {
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 TeslaClient.ReportUnauthorizedAccess(response, false, null);
 
             if (!response.IsSuccessful)
+            {
+                if (timeoutMeansReturnNull && response.StatusCode == HttpStatusCode.RequestTimeout)
+                    return default;
                 ReportKnownErrors(response);
+            }
 
+            // This should never happen now that we are checking for known errors first, but in case we missed something...
             if (response.Content.Length == 0)
                 throw new FormatException($"Tesla didn't provide data.  Error: {response.StatusCode}");
 
