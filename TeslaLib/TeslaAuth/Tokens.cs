@@ -10,5 +10,6 @@ namespace TeslaAuth
         public string RefreshToken { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public TimeSpan ExpiresIn { get; set; }
+        public string TokenType { get; set; }
     }
 }

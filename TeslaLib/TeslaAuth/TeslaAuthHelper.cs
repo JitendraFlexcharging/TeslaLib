@@ -108,14 +108,17 @@ namespace TeslaAuth
             var code = q["code"];
 
             var tokens = await ExchangeCodeForBearerTokenAsync(code, client, cancellationToken);
+            return tokens;
+            /*
             var accessAndRefreshTokens = await ExchangeAccessTokenForBearerTokenAsync(tokens.AccessToken, client, cancellationToken);
             return new Tokens
             {
-                AccessToken = accessAndRefreshTokens.AccessToken,
+                AccessToken = tokens.AccessToken,
                 RefreshToken = tokens.RefreshToken,
-                CreatedAt = accessAndRefreshTokens.CreatedAt,
-                ExpiresIn = accessAndRefreshTokens.ExpiresIn
+                CreatedAt = tokens.CreatedAt,
+                ExpiresIn = tokens.ExpiresIn
             };
+            */
         }
         #endregion Public API for browser-assisted auth
 
@@ -157,13 +160,24 @@ namespace TeslaAuth
             }
 
             var response = JObject.Parse(resultContent);
+            var tokens = new Tokens
+            {
+                AccessToken = response["access_token"]!.Value<string>(),
+                RefreshToken = response["refresh_token"]!.Value<string>(),
+                ExpiresIn = TimeSpan.FromSeconds(response["expires_in"]!.Value<long>()),
+                TokenType = response["token_type"]!.Value<string>(),
+                CreatedAt = DateTimeOffset.Now,
+            };
+            return tokens;
+            /*
             var accessToken = response["access_token"]!.Value<string>();
             var newTokens = await ExchangeAccessTokenForBearerTokenAsync(accessToken, client, cancellationToken);
             newTokens.RefreshToken = response["refresh_token"]!.Value<string>();
             return newTokens;
+            */
         }
         #endregion Public API for token refresh
-        
+
         #region Authentication helpers
         async Task InitializeLoginAsync(HttpClient client, CancellationToken cancellationToken)
         {
@@ -288,10 +302,14 @@ namespace TeslaAuth
 
             var response = JObject.Parse(resultContent);
 
+            // As of March 21 2022, this returns a bearer token
             var tokens = new Tokens
             {
                 AccessToken = response["access_token"]!.Value<string>(),
-                RefreshToken = response["refresh_token"]!.Value<string>()
+                RefreshToken = response["refresh_token"]!.Value<string>(),
+                ExpiresIn = TimeSpan.FromSeconds(response["expires_in"]!.Value<long>()),
+                TokenType = response["token_type"]!.Value<string>(),
+                CreatedAt = DateTimeOffset.Now,
             };
             return tokens;
         }
