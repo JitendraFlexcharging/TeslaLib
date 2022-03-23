@@ -107,16 +107,17 @@ namespace TeslaAuth
             var q = HttpUtility.ParseQueryString(b.Query);
             var code = q["code"];
 
+            // As of March 21 2022, this returns a bearer token.  No need to call ExchangeAccessTokenForBearerToken
             var tokens = await ExchangeCodeForBearerTokenAsync(code, client, cancellationToken);
             return tokens;
             /*
             var accessAndRefreshTokens = await ExchangeAccessTokenForBearerTokenAsync(tokens.AccessToken, client, cancellationToken);
             return new Tokens
             {
-                AccessToken = tokens.AccessToken,
+                AccessToken = accessAndRefreshTokens.AccessToken,
                 RefreshToken = tokens.RefreshToken,
-                CreatedAt = tokens.CreatedAt,
-                ExpiresIn = tokens.ExpiresIn
+                CreatedAt = accessAndRefreshTokens.CreatedAt,
+                ExpiresIn = accessAndRefreshTokens.ExpiresIn
             };
             */
         }
@@ -160,6 +161,8 @@ namespace TeslaAuth
             }
 
             var response = JObject.Parse(resultContent);
+
+            // As of March 21 2022, this returns a bearer token.  No need to call ExchangeAccessTokenForBearerToken
             var tokens = new Tokens
             {
                 AccessToken = response["access_token"]!.Value<string>(),
@@ -302,7 +305,6 @@ namespace TeslaAuth
 
             var response = JObject.Parse(resultContent);
 
-            // As of March 21 2022, this returns a bearer token
             var tokens = new Tokens
             {
                 AccessToken = response["access_token"]!.Value<string>(),

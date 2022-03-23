@@ -45,9 +45,13 @@ namespace TeslaLib
         public static TextWriter Logger = TextWriter.Null;
 
         private static IOAuthTokenStore TokenStore = null;
-        // If we are within perhaps two weeks of our OAuth2 token expiring, renew the token.
-        // Tokens may last for 45 days.
-        private static readonly TimeSpan TokenExpirationRenewalWindow = TimeSpan.FromDays(14);
+        // If we are within some time before our OAuth2 token expires, renew the token.  We used to use 2 weeks for comfort.
+        // We used to get a refresh token that we strongly assumed was good for 45 days, just like the the access token.
+        // Now the access token expires after 8 hours, and we don't know about the refresh token's lifetime.  Maybe it's 8 hours too?
+        // We have absolutely no currently documented way of knowing the lifetime of the refresh token.  It is good for at least
+        // 10.5 hours.  Is it good for 45 days?  For forever until revoked by a password change?  Unknown.
+        // Based on our usage, refreshing this every 4.5 hours is probably best.
+        private static readonly TimeSpan TokenExpirationRenewalWindow = TimeSpan.FromHours(4.5);
 
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
         internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
@@ -107,8 +111,10 @@ namespace TeslaLib
             bool refreshingTokenFailed = false;
             if (token != null)
             {
-                // Check expiration.  If we're within a few days of expiration, refresh it.
-                // If the access token expired, we might still be able to use the refresh token, maybe.
+                // Check expiration.  If we're within a short time of expiration, refresh it.
+                // If the access token expired, we might still be able to use the refresh token.  We don't know how long
+                // though.  In March 2022 Tesla shrunk the lifetime of access tokens from 45 days to 8 hours, but refresh tokens
+                // are usable for longer than that.  And refreshing the tokens returned the same refresh token.
                 TimeSpan expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
 
                 /*  // This code was throwing away the token without trying the refresh token.  Seems silly.
@@ -122,7 +128,7 @@ namespace TeslaLib
 
                 if (expirationTimeFromNow < TokenExpirationRenewalWindow || (forceRefreshOlderThanToday && token.CreatedUtc < DateTime.UtcNow.Date.AddDays(-2)))
                 {
-                    // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
+                    // We have a valid access token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
                     LoginToken newToken = null;
                     try
                     {
@@ -169,7 +175,9 @@ namespace TeslaLib
 
                 if (expirationTimeFromNow.TotalSeconds < 0)
                 {
-                    // If it expired, we need a new token.  Not clear that the refresh token will work.
+                    // If the access token expired, we need a new token.  Not clear that the refresh token will work, as we don't
+                    // know what the lifetime of the refresh token is.  It's at least as long as the access token, but my guess is
+                    // it is still valid for 45 days from creation.  This is a possibly soon to be broken assumption.
                     if (token == null)
                         Logger.WriteLine("TeslaLib login token for {0} expired.", Email);
                     else
@@ -247,7 +255,8 @@ namespace TeslaLib
                 if (expirationTimeFromNow.TotalSeconds < 0)
                 {
                     // If it expired, we need a new token.  Not clear whether the refresh token will work.
-                    // Try using the refresh token anyways?  This should fail, but maybe it will work?
+                    // Try using the refresh token anyways, as the lifetime of the refresh token can exceed
+                    // the lifetime of the access token by an undocumented amount.
                     // Note:  This error code path has not been tested.
                     var newToken = await RefreshLoginTokenAsync(token);
                     if (newToken == null)
@@ -259,7 +268,7 @@ namespace TeslaLib
                 }
                 else if (expirationTimeFromNow < TokenExpirationRenewalWindow)
                 {
-                    // We have a valid refresh token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
+                    // We have a valid access token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
                     var newToken = await RefreshLoginTokenAsync(token);
                     if (TokenStore != null)
                     {
