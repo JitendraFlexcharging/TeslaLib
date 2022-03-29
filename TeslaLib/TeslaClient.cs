@@ -680,10 +680,10 @@ namespace TeslaLib
         internal static void ReportUnauthorizedAccess(IRestResponse response, bool successfullyRefreshedToken, String accountName)
         {
             var errorParameter = response.Headers.Where(p => p.Value != null && p.Value.ToString().Contains("error_description")).FirstOrDefault();
-            String errorDescription = errorParameter.Value.ToString();
             String errorMsg = null;
             if (errorParameter != null)
             {
+                String errorDescription = errorParameter.Value.ToString();
                 int errDescIndex = errorDescription.IndexOf("error_description");
                 if (errDescIndex > 0)
                 {
