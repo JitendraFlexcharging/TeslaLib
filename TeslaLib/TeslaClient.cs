@@ -160,7 +160,9 @@ namespace TeslaLib
                         }
                         else
                         {
+                            // Add new token, delete the old one.
                             await TokenStore.UpdateTokenAsync(Email, newToken);
+                            await TokenStore.DeleteSpecificTokenAsync(Email, token);
                             token = newToken;
                         }
                     }
