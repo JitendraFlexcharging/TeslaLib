@@ -30,6 +30,11 @@ namespace TeslaLib
         public RestClient Client { get; set; } 
         public TeslaAuthHelper TeslaAuthHelper { get; private set; }
 
+        // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
+        // strings seems to be "product/version lots of other stuff".  Chrome uses this for its user agent string:
+        // Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+        public static readonly String FlexChargingUserAgent = "FlexCharging/1.0";
+
         public const string LoginUrl = "https://owner-api.teslamotors.com/oauth/";
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
         public const string StreamingUrl = "wss://streaming.vn.teslamotors.com/streaming/";
@@ -83,12 +88,7 @@ namespace TeslaLib
             Client = new RestClient(BaseUrl);
             Client.Authenticator = new TeslaAuthenticator();
 
-            // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
-            // strings seems to be "product/version lots of other stuff".  Chrome uses this for its user agent string:
-            // Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
-            String userAgent = "FlexCharging/1.0";
-
-            TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(userAgent, region);
+            TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
 
         public static IOAuthTokenStore OAuthTokenStore
@@ -355,6 +355,7 @@ namespace TeslaLib
             loginToken.RefreshToken = tokens.RefreshToken;
             loginToken.CreatedUtc = tokens.CreatedAt.UtcDateTime;
             loginToken.ExpiresInTimespan = tokens.ExpiresIn;
+            // We don't know how long the refresh token is good for.  8 hours?  45 days?  Infinite?  We should make some kind of estimate.
             return loginToken;
         }
 
