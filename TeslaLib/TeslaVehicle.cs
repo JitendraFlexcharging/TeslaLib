@@ -243,6 +243,8 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Post(request);
+            ReportKnownErrors(response);
+
             JToken json = null;
             try
             {
@@ -250,8 +252,6 @@ namespace TeslaLib
             }
             catch(JsonReaderException e)
             {
-                ReportKnownErrors(response);
-
                 if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
                     throw new TeslaServerException();
 
@@ -268,7 +268,6 @@ namespace TeslaLib
             }
             catch(Exception e)
             {
-                ReportKnownErrors(response);
                 e.Data["SerializedResponse"] = response.Content;
                 TeslaClient.Logger.WriteLine("Wakeup failed to deserialize.  JSON: \"" + json + "\"");
                 throw;
