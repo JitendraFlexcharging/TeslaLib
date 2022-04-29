@@ -24,7 +24,7 @@ namespace TeslaLib.Converters
 
             // Convert the Unix Timestamp to a readable DateTime
             var time = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            time = time.AddSeconds(unixTimestamp.Value).ToLocalTime();
+            time = time.AddSeconds(unixTimestamp.Value);
 
             return time;
         }
