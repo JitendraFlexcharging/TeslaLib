@@ -31,7 +31,7 @@ namespace TeslaAuth
     /// Also, Tesla accounts in different countries are stored on different servers (such as China vs. the rest of the world).
     /// You'll need a different instance for each region.
     /// </summary>
-    public class TeslaAuthHelper
+    public class TeslaAuthHelper : ITeslaAuthHelper
     {
         const string TESLA_CLIENT_ID = "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384";
         const string TESLA_CLIENT_SECRET = "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3";
@@ -39,7 +39,7 @@ namespace TeslaAuth
         readonly string UserAgent;
         readonly LoginInfo loginInfo;
         readonly HttpClient client;
-        
+
         #region Constructor and HttpClient initialisation
         public TeslaAuthHelper(string userAgent, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
         {
@@ -208,7 +208,7 @@ namespace TeslaAuth
 
             using var content = new FormUrlEncodedContent(formFields);
 
-            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") {Port = -1};
+            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") { Port = -1 };
             var q = HttpUtility.ParseQueryString(b.Query);
             q["client_id"] = "ownerapi";
             q["code_challenge"] = loginInfo.CodeChallenge;
@@ -332,9 +332,9 @@ namespace TeslaAuth
                 Content = content,
                 Headers = { Authorization = new AuthenticationHeaderValue("Bearer", accessToken) }
             };
-            
+
             using var result = await client.SendAsync(request, cancellationToken);
-            
+
             string resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
@@ -389,14 +389,14 @@ namespace TeslaAuth
 
         async Task<string> GetMfaFactorIdAsync(string mfaCode, LoginInfo loginInfo, HttpClient client, CancellationToken cancellationToken)
         {
-            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize/mfa/factors") {Port = -1};
+            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize/mfa/factors") { Port = -1 };
 
             var q = HttpUtility.ParseQueryString(b.Query);
             q["transaction_id"] = loginInfo.FormFields["transaction_id"];
             b.Query = q.ToString();
             string url = b.ToString();
 
-            using var  result = await client.GetAsync(url, cancellationToken);
+            using var result = await client.GetAsync(url, cancellationToken);
             var resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
@@ -415,7 +415,7 @@ namespace TeslaAuth
                 }
             }
 
-            throw new Exception("MFA code not matching on registered devices."); 
+            throw new Exception("MFA code not matching on registered devices.");
         }
 
         async Task<bool> VerifyMfaCodeAsync(string mfaCode, LoginInfo loginInfo, string factorId, HttpClient client, CancellationToken cancellationToken)
@@ -436,7 +436,7 @@ namespace TeslaAuth
             };
 
             using var result = await client.SendAsync(request, cancellationToken);
-            
+
             string resultContent = await result.Content.ReadAsStringAsync();
 
             var response = JObject.Parse(resultContent);
@@ -461,11 +461,11 @@ namespace TeslaAuth
 
         async Task<string> GetCodeAfterValidMfaAsync(LoginInfo loginInfo, HttpClient client, CancellationToken cancellationToken)
         {
-            var d = new Dictionary<string, string> {{"transaction_id", loginInfo.FormFields["transaction_id"]}};
+            var d = new Dictionary<string, string> { { "transaction_id", loginInfo.FormFields["transaction_id"] } };
 
             using var content = new FormUrlEncodedContent(d);
 
-            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") {Port = -1};
+            var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") { Port = -1 };
             var q = HttpUtility.ParseQueryString(b.Query);
             q["client_id"] = "ownerapi";
             q["code_challenge"] = loginInfo.CodeChallenge;

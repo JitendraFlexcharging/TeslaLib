@@ -18,7 +18,7 @@ namespace TeslaLib
      * "id_s":"26396141727078272","calendar_enabled":true,"api_version":6,
      * "backseat_token":null,"backseat_token_updated_at":null}],"count":1}
      */
-    public class TeslaVehicle
+    public class TeslaVehicle : ITeslaVehicle
     {
 
         #region Properties
@@ -185,7 +185,7 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<ChargeStateStatus>(response, timeoutMeansReturnNull: true);
+            return ParseResult<ChargeStateStatus>(response, timeoutMeansReturnNull: false);
         }
 
         public ClimateStateStatus LoadClimateStateStatus()
@@ -243,15 +243,15 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Post(request);
-            ReportKnownErrors(response);
-
             JToken json = null;
             try
             {
                 json = JObject.Parse(response.Content)["response"];
             }
-            catch(JsonReaderException e)
+            catch (JsonReaderException e)
             {
+                ReportKnownErrors(response);
+
                 if (response.Content.Contains(TeslaClient.InternalServerErrorMessage))
                     throw new TeslaServerException();
 
@@ -266,8 +266,9 @@ namespace TeslaLib
             {
                 data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
             }
-            catch(Exception e)
+            catch (Exception e)
             {
+                ReportKnownErrors(response);
                 e.Data["SerializedResponse"] = response.Content;
                 TeslaClient.Logger.WriteLine("Wakeup failed to deserialize.  JSON: \"" + json + "\"");
                 throw;
@@ -483,7 +484,7 @@ namespace TeslaLib
             return ParseResult<ResultStatus>(response);
         }
 
-        private T ParseResult<T>(IRestResponse response, bool timeoutMeansReturnNull=false)
+        private T ParseResult<T>(IRestResponse response, bool timeoutMeansReturnNull = false)
         {
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 TeslaClient.ReportUnauthorizedAccess(response, false, null);
@@ -514,7 +515,7 @@ namespace TeslaLib
                 // Hack - if we have an enum we can't deal with, print something out...  But we also can't not fail.
                 if (e.Message.StartsWith("Error converting value "))
                 {
-                    TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  "+e + "\r\nBad TeslaLib JSON content: "+response.Content);
+                    TeslaClient.Logger.WriteLine("TeslaVehicle failed to deserialize something.  Need to add new enum value?  " + e + "\r\nBad TeslaLib JSON content: " + response.Content);
                 }
                 throw;
             }

@@ -18,7 +18,7 @@ using TeslaAuth;
 namespace TeslaLib
 {
 
-    public class TeslaClient
+    public class TeslaClient : ITeslaClient
     {
         public string Email { get; }
         public string TeslaClientId { get; }
@@ -27,7 +27,7 @@ namespace TeslaLib
         // For refresh token.
         private LoginToken _token;
 
-        public RestClient Client { get; set; } 
+        public RestClient Client { get; set; }
         public TeslaAuthHelper TeslaAuthHelper { get; private set; }
 
         // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
@@ -78,7 +78,7 @@ namespace TeslaLib
         </HTML>
         */
 
-        public TeslaClient(string email, string teslaClientId, string teslaClientSecret, 
+        public TeslaClient(string email, string teslaClientId, string teslaClientSecret,
             TeslaAccountRegion region = TeslaAccountRegion.Unknown, TeslaAuthHelper authHelper = null)
         {
             Email = email;
@@ -135,7 +135,7 @@ namespace TeslaLib
                         newToken = await RefreshLoginTokenAsync(token);
                         expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         refreshingTokenFailed = true;
                         Object serializedResponse = e.Data["SerializedResponse"];
@@ -208,7 +208,7 @@ namespace TeslaLib
                 {
                     token = await GetLoginTokenAsync(password, mfaCode).ConfigureAwait(false);
                 }
-                catch(SecurityException)
+                catch (SecurityException)
                 {
                     String getLoginTokenFailed = $"TeslaLib GetLoginTokenAsync failed for account {Email}";
                     if (refreshingTokenFailed)
@@ -324,7 +324,7 @@ namespace TeslaLib
 
                 loginToken = ConvertTeslaAuthTokensToLoginToken(tokens);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Object serializedResponse = e.Data["SerializedResponse"];
                 String responseStr = serializedResponse == null ? String.Empty : "\r\nSerialized response: " + serializedResponse;
@@ -338,14 +338,14 @@ namespace TeslaLib
             return loginToken;
         }
 
-        public void LoginWithExistingToken(LoginToken loginToken)
+        public async Task LoginWithExistingToken(LoginToken loginToken)
         {
             if (loginToken == null)
                 throw new ArgumentNullException(nameof(loginToken));
             if (loginToken.ExpiresUtc < DateTime.Now)
                 throw new ArgumentException("Login token provided has expired");
 
-            SetToken(loginToken);
+             SetToken(loginToken);
         }
 
         private static LoginToken ConvertTeslaAuthTokensToLoginToken(Tokens tokens)
@@ -565,7 +565,7 @@ namespace TeslaLib
                 // because I don't think we can deserialize a List<A | B>.  
                 data = new List<EnergySite>();
                 String[] sections = JsonSplit(str);
-                foreach(var section in sections)
+                foreach (var section in sections)
                 {
                     if (section.Contains("energy_site_id"))
                     {
@@ -634,7 +634,7 @@ namespace TeslaLib
         {
             List<String> sections = new List<String>();
             int i = 0;
-            while (i<str.Length)
+            while (i < str.Length)
             {
                 while (i < str.Length && str[i] != '{') i++;
                 if (i == str.Length)
@@ -699,7 +699,8 @@ namespace TeslaLib
             String msg = (accountName == null) ? "Tesla authorization error.  " : "Tesla authorization error for account " + accountName + ".  ";
             if (successfullyRefreshedToken)
                 msg += "Try again.";
-            else {
+            else
+            {
                 msg += "Did your password change?";
                 if (errorMsg != null)
                     msg += "  " + errorMsg;
