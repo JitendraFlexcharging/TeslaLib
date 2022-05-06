@@ -2,7 +2,7 @@
 
 namespace TeslaLib
 {
-    public interface ITeslaLoad
+    public interface ITeslaLoadVehicle
     {
         TeslaClient Client { get; }
 
