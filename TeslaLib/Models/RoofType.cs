@@ -28,6 +28,9 @@ namespace TeslaLib.Models
         [EnumMember(Value = "RoofColorGlass")]
         RoofColorGlass,
 
+        [EnumMember(Value = "FixedGlassRoof")]
+        FixedGlassRoof, // Compatible with roofracks
+
         // Possible future roof glass types, based on reverse engineering Tesla software:/
         // https://twitter.com/greentheonly/status/1208160416305688576
         // TSA3_PET  (PET is a type of lamination)

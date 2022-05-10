@@ -384,6 +384,10 @@ namespace TeslaLib.Models
                                 case "PX":
                                     RoofType = RoofType.ModelX;
                                     break;
+                                case "FR":
+                                    // Fixed glass roof, roof-rack compat, Model S 2020 onwards
+                                    RoofType = RoofType.FixedGlassRoof;
+                                    break;
                                 default:
                                     TeslaClient.Logger.WriteLine("Unrecognized roof type: " + option);
                                     break;
