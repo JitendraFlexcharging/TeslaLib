@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>1.4.9</Version>
+    <Version>1.4.10</Version>
     <Title>TeslaLib</Title>
     <PackageId>TeslaLib</PackageId>
     <Authors>Raz Friman, Brian Grunkemeyer</Authors>
