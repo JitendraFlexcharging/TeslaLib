@@ -96,6 +96,10 @@ namespace TeslaLib
 
         private void ReportKnownErrors(IRestResponse response)
         {
+            // Success is not a failure.
+            if (response.StatusCode == HttpStatusCode.OK)
+                return;
+
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 TeslaClient.ReportUnauthorizedAccess(response, false, null);
 
