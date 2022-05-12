@@ -24,6 +24,7 @@ namespace TeslaLib
         public string TeslaClientId { get; }
         public string TeslaClientSecret { get; }
         public string AccessToken { get; private set; }
+       
         // For refresh token.
         private LoginToken _token;
 
@@ -79,7 +80,7 @@ namespace TeslaLib
         */
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret,
-            TeslaAccountRegion region = TeslaAccountRegion.Unknown, TeslaAuthHelper authHelper = null)
+            TeslaAccountRegion region = TeslaAccountRegion.Unknown, TeslaAuthHelper authHelper = null, IOAuthTokenStore iOAuthTokenStore = null)
         {
             Email = email;
             TeslaClientId = teslaClientId;
@@ -87,7 +88,7 @@ namespace TeslaLib
 
             Client = new RestClient(BaseUrl);
             Client.Authenticator = new TeslaAuthenticator();
-
+            OAuthTokenStore = iOAuthTokenStore;
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
 
