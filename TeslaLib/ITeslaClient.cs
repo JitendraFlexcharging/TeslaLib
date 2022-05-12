@@ -12,7 +12,7 @@ namespace TeslaLib
         string AccessToken { get; }
         RestClient Client { get; set; }
         string Email { get; }
-        TeslaAuthHelper TeslaAuthHelper { get; }
+        ITeslaAuthHelper TeslaAuthHelper { get; }
         string TeslaClientId { get; }
         string TeslaClientSecret { get; }
 

@@ -29,7 +29,7 @@ namespace TeslaLib
         private LoginToken _token;
 
         public RestClient Client { get; set; }
-        public TeslaAuthHelper TeslaAuthHelper { get; private set; }
+        public ITeslaAuthHelper TeslaAuthHelper { get; private set; }
 
         // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
         // strings seems to be "product/version lots of other stuff".  Chrome uses this for its user agent string:
@@ -80,7 +80,7 @@ namespace TeslaLib
         */
 
         public TeslaClient(string email, string teslaClientId, string teslaClientSecret,
-            TeslaAccountRegion region = TeslaAccountRegion.Unknown, TeslaAuthHelper authHelper = null, IOAuthTokenStore iOAuthTokenStore = null)
+            TeslaAccountRegion region = TeslaAccountRegion.Unknown, ITeslaAuthHelper authHelper = null, IOAuthTokenStore iOAuthTokenStore = null)
         {
             Email = email;
             TeslaClientId = teslaClientId;
