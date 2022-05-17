@@ -177,7 +177,7 @@ namespace TeslaLib
         {
             var errorJson = JObject.Parse(response.Content)["error"];
             var error = errorJson.ToString();
-            TeslaClient.Logger.WriteLine("TeslaLib ParseErrorFromJson debugging: error: {0}", error);
+            //TeslaClient.Logger.WriteLine("TeslaLib ParseErrorFromJson debugging: error: {0}", error);
             if (!String.IsNullOrWhiteSpace(error))
                 return error;
             return null;
@@ -247,6 +247,10 @@ namespace TeslaLib
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Post(request);
+            // Commonly, we will get back that the vehicle is unavailable.
+            if (response.StatusCode == HttpStatusCode.RequestTimeout)
+                return VehicleState.Asleep;
+
             JToken json = null;
             try
             {
@@ -265,7 +269,7 @@ namespace TeslaLib
                 throw;
             }
 
-            TeslaVehicle data = null;
+            TeslaVehicle data;
             try
             {
                 data = JsonConvert.DeserializeObject<TeslaVehicle>(json.ToString());
