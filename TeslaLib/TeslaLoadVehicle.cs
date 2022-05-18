@@ -17,7 +17,7 @@ namespace TeslaLib
 
         public void LoadVehicle(string email, string password, string MFA = null, TeslaAuthHelper teslaAuthHelper = null)
         {
-            Client = new TeslaClient(email, TESLA_CLIENT_ID, TESLA_CLIENT_SECRET, authHelper: teslaAuthHelper);
+            Client = new TeslaClient(email, TESLA_CLIENT_ID, TESLA_CLIENT_SECRET, TeslaAccountRegion.Unknown, authHelper: teslaAuthHelper);
         }
     }
 }
