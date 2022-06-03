@@ -170,7 +170,8 @@ namespace TeslaLib
                     throw new VehicleNotFoundException();
             }
 
-            TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error.  Status code: {0}  Response content: \"{1}\"  Content length: {2}", response.StatusCode, response.Content, response.Content.Length);
+            TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error for vehicle {0}.  Status code: {1}  Response content: \"{2}\"  Content length: {3}",
+                Vin, response.StatusCode, response.Content, response.Content.Length);
         }
 
         private static string ParseErrorFromJson(IRestResponse response)
