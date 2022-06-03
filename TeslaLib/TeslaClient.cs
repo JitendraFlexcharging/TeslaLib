@@ -139,6 +139,7 @@ namespace TeslaLib
                 // though.  In March 2022 Tesla shrunk the lifetime of access tokens from 45 days to 8 hours, but refresh tokens
                 // are usable for longer than that.  And refreshing the tokens returned the same refresh token.
                 TimeSpan expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
+                //Console.WriteLine($"TeslaLib token debugging for {Email}:  Token expiration: {token.ExpiresUtc}  Is expired? {expirationTimeFromNow.TotalSeconds < 0}");
 
                 /*  // This code was throwing away the token without trying the refresh token.  Seems silly.
                 if (expirationTimeFromNow.TotalSeconds < 0)
@@ -162,7 +163,7 @@ namespace TeslaLib
                     {
                         refreshingTokenFailed = true;
                         Object serializedResponse = e.Data["SerializedResponse"];
-                        String errMsg = String.Format("TeslaLib couldn't refresh a login token while logging in for account {5}.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
+                        String errMsg = String.Format("TeslaLib LoginUsingTokenStoreAsync couldn't refresh a login token while logging in for account {5}.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
                             token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse, Email);
                         Console.WriteLine(errMsg);
                         Logger.WriteLine(errMsg);
@@ -718,7 +719,7 @@ namespace TeslaLib
                     errorMsg = errorDescription.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
                 }
             }
-
+            
             String msg = (accountName == null) ? "Tesla authorization error.  " : "Tesla authorization error for account " + accountName + ".  ";
             if (successfullyRefreshedToken)
                 msg += "Try again.";
@@ -727,6 +728,8 @@ namespace TeslaLib
                 msg += "Did your password change?";
                 if (errorMsg != null)
                     msg += "  " + errorMsg;
+                else if (response.Content.Length > 0)
+                    msg += "  Tesla returned: " + response.Content;
             }
 
             throw new SecurityException(msg);
