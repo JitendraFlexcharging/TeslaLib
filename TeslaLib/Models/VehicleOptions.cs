@@ -131,7 +131,11 @@ namespace TeslaLib.Models
 
             // From Tim Dorr's API documentation site:
             // As of August 2019, Option Codes cannot be relied on. Vehicles now return a generic set of codes related to a Model 3.
-
+            
+            if (string.IsNullOrEmpty(optionCodes))
+            {
+                return;
+            }
             var options = optionCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (string option in options)
