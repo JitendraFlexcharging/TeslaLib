@@ -19,6 +19,7 @@ namespace TeslaConsole
             string email = "";
             string password = "";
 
+
             TeslaClient.OAuthTokenStore = new FileBasedOAuthTokenStore();
 
             TeslaClient client = new TeslaClient(email, clientId, clientSecret);
@@ -53,49 +54,53 @@ namespace TeslaConsole
             */
 
             //client.GetAllProductsAsync(CancellationToken.None).Wait();
-            List<EnergySite> energySites = client.GetEnergySitesAsync(CancellationToken.None).Result;
-            if (energySites != null && energySites.Count != 0)
+            bool printEnergySites = false;
+            if (printEnergySites)
             {
-                Console.WriteLine("Found {0} energy sites", energySites.Count);
-                foreach(EnergySite energySite in energySites)
+                List<EnergySite> energySites = client.GetEnergySitesAsync(CancellationToken.None).Result;
+                if (energySites != null && energySites.Count != 0)
                 {
-                    Console.WriteLine($"Energy site name: {energySite.SiteName}  SoC: {energySite.StateOfCharge.ToString("0.0")}%  Power: {energySite.BatteryPower}  Energy left: {energySite.EnergyLeft.ToString("0")} / {energySite.TotalPackEnergy}");
-                    //Console.WriteLine($"Site summary: {energySite.GetSiteSummary()}");
-                    EnergySiteData liveStatus = energySite.GetLiveStatus();
-                    Console.WriteLine($"Live status -  Home: {liveStatus.LoadPower}  Solar: {liveStatus.SolarPower}  Battery: {liveStatus.BatteryPower}  Grid: {liveStatus.GridPower}");
-                    var configuration = energySite.GetSiteConfiguration();
-                    Console.WriteLine($"Configuration - Mode: {configuration.DefaultRealMode}  Site Name: {configuration.SiteName}");
-                    var settings = configuration.UserSettings;
-                    Console.WriteLine($"User settings - Storm mode enabled: {settings.StormModeEnabled}  Breaker alert: {settings.BreakerAlertEnabled}  Sync grid alert: {settings.SyncGridAlertEnabled}");
-                    var touSettings = configuration.TouSettings;
-                    Console.WriteLine($"TOU settings - Optimization strategy: {touSettings.OptimizationStrategy}  Number of schedule items: {touSettings.Schedule.Count}");
-                    Console.WriteLine($"Installation time zone: {configuration.InstallationTimeZone}");
-                    Console.WriteLine($"Nameplate Energy: {configuration.NameplateEnergy}  Nameplate Power: {configuration.NameplatePower}");
-                    
-                    Console.WriteLine("Energy history:");
-                    var energyHistory = energySite.GetEnergyHistory();
-                    foreach (var energyHistoryData in energyHistory.TimeSeries)
-                        Console.WriteLine($"{energyHistoryData.TimeStamp}  Solar exported: {energyHistoryData.SolarEnergyExported.ToString("0")}  Powerwall exported: {energyHistoryData.BatteryEnergyExported.ToString("0")}  Solar -> Battery {energyHistoryData.BatteryEnergyImportedFromSolar.ToString("0")}");
-                    Console.WriteLine();
+                    Console.WriteLine("Found {0} energy sites", energySites.Count);
+                    foreach (EnergySite energySite in energySites)
+                    {
+                        Console.WriteLine($"Energy site name: {energySite.SiteName}  SoC: {energySite.StateOfCharge.ToString("0.0")}%  Power: {energySite.BatteryPower}  Energy left: {energySite.EnergyLeft.ToString("0")} / {energySite.TotalPackEnergy}");
+                        //Console.WriteLine($"Site summary: {energySite.GetSiteSummary()}");
+                        EnergySiteData liveStatus = energySite.GetLiveStatus();
+                        Console.WriteLine($"Live status -  Home: {liveStatus.LoadPower}  Solar: {liveStatus.SolarPower}  Battery: {liveStatus.BatteryPower}  Grid: {liveStatus.GridPower}");
+                        var configuration = energySite.GetSiteConfiguration();
+                        Console.WriteLine($"Configuration - Mode: {configuration.DefaultRealMode}  Site Name: {configuration.SiteName}");
+                        var settings = configuration.UserSettings;
+                        Console.WriteLine($"User settings - Storm mode enabled: {settings.StormModeEnabled}  Breaker alert: {settings.BreakerAlertEnabled}  Sync grid alert: {settings.SyncGridAlertEnabled}");
+                        var touSettings = configuration.TouSettings;
+                        Console.WriteLine($"TOU settings - Optimization strategy: {touSettings.OptimizationStrategy}  Number of schedule items: {touSettings.Schedule.Count}");
+                        Console.WriteLine($"Installation time zone: {configuration.InstallationTimeZone}");
+                        Console.WriteLine($"Nameplate Energy: {configuration.NameplateEnergy}  Nameplate Power: {configuration.NameplatePower}");
 
-                    Console.WriteLine($"Power History:");
-                    var powerHistory = energySite.GetPowerHistory();
-                    foreach (var data in powerHistory.TimeSeries)
-                        Console.WriteLine($"  {data.TimeStamp}  Grid services: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
+                        Console.WriteLine("Energy history:");
+                        var energyHistory = energySite.GetEnergyHistory();
+                        foreach (var energyHistoryData in energyHistory.TimeSeries)
+                            Console.WriteLine($"{energyHistoryData.TimeStamp}  Solar exported: {energyHistoryData.SolarEnergyExported.ToString("0")}  Powerwall exported: {energyHistoryData.BatteryEnergyExported.ToString("0")}  Solar -> Battery {energyHistoryData.BatteryEnergyImportedFromSolar.ToString("0")}");
+                        Console.WriteLine();
 
-                    /*  // Doesn't work, doesn't exist, or I don't know how to call it right.
-                    Console.WriteLine("Calendar Energy history:");
-                    var energyCalendarHistory = energySite.GetCalendarEnergyHistory(DateTimeOffset.Now);
-                    foreach (var energyHistoryData in energyCalendarHistory.TimeSeries)
-                        Console.WriteLine($"{energyHistoryData.TimeStamp}  Solar exported: {energyHistoryData.SolarEnergyExported.ToString("0")}  Powerwall exported: {energyHistoryData.BatteryEnergyExported.ToString("0")}  Solar -> Battery {energyHistoryData.BatteryEnergyImportedFromSolar.ToString("0")}");
-                    Console.WriteLine();
-                    */
+                        Console.WriteLine($"Power History:");
+                        var powerHistory = energySite.GetPowerHistory();
+                        foreach (var data in powerHistory.TimeSeries)
+                            Console.WriteLine($"  {data.TimeStamp}  Grid services: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
 
-                    Console.WriteLine($"Calendar Power History:");
-                    var powerCalendarHistory = energySite.GetCalendarPowerHistory(DateTimeOffset.Now);
-                    Console.WriteLine($"Calendar Power History has {powerCalendarHistory.TimeSeries.Length} items in the time series:");
-                    foreach (var data in powerCalendarHistory.TimeSeries)
-                        Console.WriteLine($"  {data.TimeStamp}  Grid services: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
+                        /*  // Doesn't work, doesn't exist, or I don't know how to call it right.
+                        Console.WriteLine("Calendar Energy history:");
+                        var energyCalendarHistory = energySite.GetCalendarEnergyHistory(DateTimeOffset.Now);
+                        foreach (var energyHistoryData in energyCalendarHistory.TimeSeries)
+                            Console.WriteLine($"{energyHistoryData.TimeStamp}  Solar exported: {energyHistoryData.SolarEnergyExported.ToString("0")}  Powerwall exported: {energyHistoryData.BatteryEnergyExported.ToString("0")}  Solar -> Battery {energyHistoryData.BatteryEnergyImportedFromSolar.ToString("0")}");
+                        Console.WriteLine();
+                        */
+
+                        Console.WriteLine($"Calendar Power History:");
+                        var powerCalendarHistory = energySite.GetCalendarPowerHistory(DateTimeOffset.Now);
+                        Console.WriteLine($"Calendar Power History has {powerCalendarHistory.TimeSeries.Length} items in the time series:");
+                        foreach (var data in powerCalendarHistory.TimeSeries)
+                            Console.WriteLine($"  {data.TimeStamp}  Grid services: {data.GridServicesPower.ToString("0")}  Solar: {data.SolarPower.ToString("0")}  Powerwall: {data.BatteryPower.ToString("0")}  Grid: {data.GridPower.ToString("0")}");
+                    }
                 }
             }
 
@@ -156,6 +161,7 @@ namespace TeslaConsole
                 Console.WriteLine($" State of charge: {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
                 Console.WriteLine($" Charging state: {(chargeState.ChargingState.HasValue ? chargeState.ChargingState.Value.ToString() : "unknown")}");
                 Console.WriteLine($"  Time until full charge: {chargeState.TimeUntilFullCharge} hours ({60*chargeState.TimeUntilFullCharge} minutes)  Usable battery level: {chargeState.UsableBatteryLevel}%");
+                Console.WriteLine($" Charge current request in Amps: {chargeState.ChargeCurrentRequest}  Max charge current request: {chargeState.ChargeCurrentRequestMax}");
                 Console.WriteLine($" Scheduled charging mode: {chargeState.ScheduledChargingMode}");
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}  Minutes: {chargeState.ScheduledChargingStartTimeMinutes}");
                 Console.WriteLine($"    Scheduled charging start time app: {chargeState.ScheduledChargingStartTimeApp}");
@@ -183,6 +189,17 @@ namespace TeslaConsole
                 Console.WriteLine("Climate:");
                 Console.WriteLine($"  Driver temperature: {climate.DriverTemperatureSetting}  Passenger: {climate.PassengerTemperatureSetting}");
                 Console.WriteLine($"  ClimateKeeperMode: {climate.ClimateKeeperMode}");
+
+                var resultStatus = car.SetChargingAmps(23);
+                if (resultStatus.Result)
+                {
+                    Console.WriteLine("SetChargingAmps succeeded");
+                }
+                else
+                {
+                    Console.WriteLine("SetChargingAmps failed.  Reason: " + resultStatus.Reason);
+                }
+
             }
 
             client.RefreshLoginTokenAndUpdateTokenStoreAsync().Wait();
