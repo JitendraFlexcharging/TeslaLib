@@ -6,7 +6,7 @@
     <StartupObject>TeslaConsole.Program</StartupObject>
     <AssemblyName>TeslaConsole</AssemblyName>
     <RootNamespace>TeslaConsole</RootNamespace>
-    <Copyright>Copyright © 2017, 2018, 2019, 2020 Brian Grunkemeyer</Copyright>
+    <Copyright>Copyright © 2017, 2018, 2019, 2020, 2021, 2022 Brian Grunkemeyer</Copyright>
     <!--<Company>FlexCharging, Inc.</Company>-->
     <Product>TeslaLib console</Product>
     <Authors>Raz Friman, Brian Grunkemeyer</Authors>
