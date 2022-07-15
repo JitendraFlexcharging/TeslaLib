@@ -349,6 +349,30 @@ namespace TeslaLib
             return ParseResult<ResultStatus>(response);
         }
 
+        /// <summary>
+        /// Limit the charging current to a particular Amperage.  Not sure if this is just at this location, or for all charging.
+        /// Does this persist or just for one charge session?  How do we clear this?
+        /// </summary>
+        /// <param name="maxAmperage">Amperage to limit charging to.  Should be set between 1 and 80 Amps for L2.</param>
+        /// <returns></returns>
+        /// <remarks>If you are plugged into a NEMA 14-50 outlet which maxes out at 40 Amps, and you set the 
+        /// max amperage to 100 amps, the car is smart enough to set it to 40.  So you can clear this by setting it too high.
+        /// If the car is not plugged in, this method will succeed, and if you plug in at the same location, this limit will kick in.
+        /// Driving to another location and charging will not be affected by this limit, but it seems that the car keeps track of
+        /// charging locations where you have set this limit, and remembers that.  Confirmed with some test drives, as well as
+        /// previous behavior with chargers that couldn't sustain their max rate.
+        /// </remarks>
+        /// <seealso cref="ChargeStateStatus.ChargeCurrentRequest"/>
+        public ResultStatus SetChargingAmps(int maxCurrentInAmperage)
+        {
+            var request = new RestRequest("vehicles/{id}/command/set_charging_amps", Method.POST);
+            request.AddParameter("id", Id, ParameterType.UrlSegment);
+            request.AddParameter("charging_amps", maxCurrentInAmperage.ToString());
+
+            var response = Client.Post(request);
+            return ParseResult<ResultStatus>(response);
+        }
+
         public ResultStatus FlashLights()
         {
             var request = new RestRequest("vehicles/{id}/command/flash_lights");
