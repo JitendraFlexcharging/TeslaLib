@@ -3,13 +3,13 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>1.4.17</Version>
+    <Version>1.4.18</Version>
     <Title>TeslaLib</Title>
     <PackageId>TeslaLib</PackageId>
     <Authors>Raz Friman, Brian Grunkemeyer</Authors>
     <PackageProjectUrl>https://github.com/razfriman/TeslaLib/</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>Tesla vehicle C# API Implementation</Description>
+    <Description>TeslaServiceUnavailable Exception update.</Description>
     <Summary>Tesla Model S C# API Implementation</Summary>
     <PackageReleaseNotes></PackageReleaseNotes>
     <Copyright>Copyright 2018, 2019, 2020, 2021, 2022</Copyright>
