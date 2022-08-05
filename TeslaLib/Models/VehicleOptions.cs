@@ -555,6 +555,7 @@ namespace TeslaLib.Models
                                 case "AT":  // Austria
                                 case "AU":  // Australia
                                 case "BE":  // Belgium
+                                case "CA":  // Canada
                                 case "CH":  // Switzerland
                                 case "DE":  // Germany
                                 case "DK":  // Denmark
