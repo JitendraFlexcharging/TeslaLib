@@ -143,7 +143,7 @@ namespace TeslaLib
             // Saw this once.
             if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
-                var serviceDownOrAggressivelyDisconnectingUs = new Exception("Tesla's service is unavailable");
+                var serviceDownOrAggressivelyDisconnectingUs = new ServiceNotAvailableException();
                 serviceDownOrAggressivelyDisconnectingUs.Data["StatusCode"] = response.StatusCode;
                 serviceDownOrAggressivelyDisconnectingUs.Data["Error"] = response.Content;
                 TeslaClient.Logger.WriteLine("Tesla server is either down or aggressively disconnecting us.  Message: {0}", response.Content);
