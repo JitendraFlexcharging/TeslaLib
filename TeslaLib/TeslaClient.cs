@@ -341,6 +341,8 @@ namespace TeslaLib
 
         private async Task<LoginToken> GetLoginTokenAsync(string password, string mfaCode)
         {
+            throw new SecurityException("Re-login interactively for Tesla account " + Email);
+            /*
             LoginToken loginToken = null;
             try
             {
@@ -360,6 +362,7 @@ namespace TeslaLib
             // @TODO: Verify that the TeslaAuthHelper code verifies the code challenge.
 
             return loginToken;
+            */
         }
 
         public async Task LoginWithExistingToken(LoginToken loginToken)
