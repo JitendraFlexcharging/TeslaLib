@@ -256,6 +256,7 @@ namespace TeslaLib
         {
             var request = new RestRequest("vehicles/{id}/wake_up");
             request.AddParameter("id", Id, ParameterType.UrlSegment);
+            request.AddParameter("timeout", 20);
 
             var response = Client.Post(request);
             // Commonly, we will get back that the vehicle is unavailable.
