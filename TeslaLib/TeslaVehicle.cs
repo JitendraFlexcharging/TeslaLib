@@ -140,9 +140,19 @@ namespace TeslaLib
                 throw blocked;
             }
 
-            // Saw this once.
+            // Saw this once, but there are multiple causes.
             if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
+                // Handle timeouts where Tesla's mother ship tells us that waking up a car timed out after 10 seconds.
+                // {"response":null,"error":https://mothership-api.prd.usw2.vn.tesla.com:443/vehicles/1502282633 => operation_timedout with 10s timeout,"error_description":""}
+                if (response.Content.Contains("operation_timedout"))
+                {
+                    var timeout = new TimeoutException("Timeout contacting Tesla vehicle");
+                    timeout.Data["Response"] = response.Content;
+                    throw timeout;
+                }
+
+                // We saw some other errors with unknown causes.  Tesla could have throttled us, or parts of their service were down.
                 var serviceDownOrAggressivelyDisconnectingUs = new ServiceNotAvailableException();
                 serviceDownOrAggressivelyDisconnectingUs.Data["StatusCode"] = response.StatusCode;
                 serviceDownOrAggressivelyDisconnectingUs.Data["Error"] = response.Content;
