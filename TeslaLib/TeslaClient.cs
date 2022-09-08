@@ -491,7 +491,11 @@ namespace TeslaLib
             if (!IsLoggedIn())
                 throw new InvalidOperationException("Log in to your Tesla account first.");
 
+            if (Client == null)
+                throw new NullReferenceException("Please get Tesla login token first by loading Tesla account then try.");
+
             var request = new RestRequest("vehicles");
+
             var response = await Client.ExecuteGetAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -507,12 +511,15 @@ namespace TeslaLib
             try
             {
                 var json = JObject.Parse(response.Content)["response"];
+
                 data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(json.ToString());
+
                 data.ForEach(x => x.Client = Client);
             }
             catch (Exception e)
             {
                 TeslaClient.Logger.WriteLine("TeslaClient.LoadVehiclesAsync failed to parse and deserialize contents: \"" + response.Content + "\"  StatusCode: " + response.StatusCode);
+
                 if (response.Content.Contains(InternalServerErrorMessage))
                 {
                     var tse = new TeslaServerException();
@@ -520,9 +527,9 @@ namespace TeslaLib
                     throw tse;
                 }
                 e.Data["SerializedResponse"] = response.Content;
-                throw;
-            }
 
+                throw e;
+            }
             return data;
         }
 
