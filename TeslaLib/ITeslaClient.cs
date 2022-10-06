@@ -15,14 +15,13 @@ namespace TeslaLib
         ITeslaAuthHelper TeslaAuthHelper { get; }
         string TeslaClientId { get; }
         string TeslaClientSecret { get; }
-
         void ClearLoginTokenStore();
         Task<List<EnergySite>> GetEnergySitesAsync(CancellationToken cancellationToken);
         LoginToken GetTeslaLoginToken();
         List<TeslaVehicle> LoadVehicles();
         Task<List<TeslaVehicle>> LoadVehiclesAsync(CancellationToken cancellationToken);
-        Task LoginAsync(string password, string mfaCode = null);
-        Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false);
+        Task LoginAsync(string email, string password, string mfaCode = null);
+        Task LoginUsingTokenStoreAsync(string email, string password, string mfaCode = null, bool forceRefreshOlderThanToday = false);
         Task LoginUsingTokenStoreWithoutPasswordAsync();
         Task LoginWithExistingToken(LoginToken loginToken);
         Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync();
