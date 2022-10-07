@@ -118,17 +118,17 @@ namespace TeslaLib
 
         public static IOAuthTokenStore OAuthTokenStore { get; set; }
 
-        public async Task LoginUsingTokenStoreAsync(string email, string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
+        public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
         {
             bool refreshingTokenFailed = false;
 
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentNullException(nameof(email));
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new ArgumentNullException(nameof(Email));
 
             if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentNullException(nameof(password));
 
-            var token = await _tokenStoreForThisInstance.GetTokenAsync(email);
+            var token = await _tokenStoreForThisInstance.GetTokenAsync(Email);
 
             if (token == null)
                 throw new ArgumentNullException(nameof(token));
@@ -157,16 +157,16 @@ namespace TeslaLib
                     Object serializedResponse = e.Data["SerializedResponse"];
 
                     String errMsg = String.Format("TeslaLib LoginUsingTokenStoreAsync couldn't refresh a login token while logging in for account {5}.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
-                    token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse, email);
+                    token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse, Email);
 
                     Logger.WriteLine(errMsg);
                 }
 
                 if (newToken != null)
                 {
-                    await _tokenStoreForThisInstance.UpdateTokenAsync(email, newToken);
+                    await _tokenStoreForThisInstance.UpdateTokenAsync(Email, newToken);
 
-                    await _tokenStoreForThisInstance.DeleteSpecificTokenAsync(email, token);
+                    await _tokenStoreForThisInstance.DeleteSpecificTokenAsync(Email, token);
 
                     token = newToken;
                 }
@@ -195,11 +195,11 @@ namespace TeslaLib
             {
                 try
                 {
-                    token = await GetLoginTokenAsync(email, password, mfaCode).ConfigureAwait(false);
+                    token = await GetLoginTokenAsync(password, mfaCode).ConfigureAwait(false);
                 }
                 catch (SecurityException)
                 {
-                    String getLoginTokenFailed = $"TeslaLib GetNewLoginTokenAsync failed for account {email}";
+                    String getLoginTokenFailed = $"TeslaLib GetNewLoginTokenAsync failed for account {Email}";
 
                     if (refreshingTokenFailed)
                     {
@@ -212,11 +212,11 @@ namespace TeslaLib
                 }
 
                 if (token == null)
-                    throw new SecurityException(String.Format("TeslaLib couldn't log in for user {0}", email));
+                    throw new SecurityException(String.Format("TeslaLib couldn't log in for user {0}", Email));
 
                 SetToken(token);
 
-                await _tokenStoreForThisInstance.AddTokenAsync(email, token);
+                await _tokenStoreForThisInstance.AddTokenAsync(Email, token);
             }
         }
 
@@ -292,18 +292,18 @@ namespace TeslaLib
             }
         }
 
-        public async Task LoginAsync(string email, string password, String mfaCode = null)
+        public async Task LoginAsync(string password, String mfaCode = null)
         {
-            var loginToken = await GetLoginTokenAsync(email, password, mfaCode).ConfigureAwait(false);
+            var loginToken = await GetLoginTokenAsync(password, mfaCode).ConfigureAwait(false);
 
             SetToken(loginToken);
         }
 
-        private async Task<LoginToken> GetLoginTokenAsync(string email, string password, string mfaCode)
+        private async Task<LoginToken> GetLoginTokenAsync(string password, string mfaCode)
         {
             try
             {
-                Tokens tokens = await TeslaAuthHelper.AuthenticateAsync(email, password, mfaCode);
+                Tokens tokens = await TeslaAuthHelper.AuthenticateAsync(Email, password, mfaCode);
 
                 return ConvertTeslaAuthTokensToLoginToken(tokens);
 
@@ -312,7 +312,7 @@ namespace TeslaLib
             {
                 Object serializedResponse = e.Data["SerializedResponse"];
 
-                Logger.WriteLine("TeslaClient GetNewLoginTokenAsync failed for user {0}.  {1}{2}", email, e, serializedResponse == null ? String.Empty : "\r\nSerialized response: " + serializedResponse);
+                Logger.WriteLine("TeslaClient GetNewLoginTokenAsync failed for user {0}.  {1}{2}", Email, e, serializedResponse == null ? String.Empty : "\r\nSerialized response: " + serializedResponse);
 
                 throw e;
             }

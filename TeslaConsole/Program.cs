@@ -27,7 +27,7 @@ namespace TeslaConsole
             // If we have logged in previously with the same email address, then we can use this method and refresh tokens,
             // assuming the refresh token hasn't expired.
             //client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
-            client.LoginUsingTokenStoreAsync(email, password).Wait();
+            client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
 
             /*

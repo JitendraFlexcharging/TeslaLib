@@ -20,8 +20,8 @@ namespace TeslaLib
         LoginToken GetTeslaLoginToken();
         List<TeslaVehicle> LoadVehicles();
         Task<List<TeslaVehicle>> LoadVehiclesAsync(CancellationToken cancellationToken);
-        Task LoginAsync(string email, string password, string mfaCode = null);
-        Task LoginUsingTokenStoreAsync(string email, string password, string mfaCode = null, bool forceRefreshOlderThanToday = false);
+        Task LoginAsync(string password, string mfaCode = null);
+        Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false);
         Task LoginUsingTokenStoreWithoutPasswordAsync();
         Task LoginWithExistingToken(LoginToken loginToken);
         Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync();
