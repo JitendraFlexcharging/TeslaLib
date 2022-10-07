@@ -15,7 +15,6 @@ namespace TeslaLib
         ITeslaAuthHelper TeslaAuthHelper { get; }
         string TeslaClientId { get; }
         string TeslaClientSecret { get; }
-
         void ClearLoginTokenStore();
         Task<List<EnergySite>> GetEnergySitesAsync(CancellationToken cancellationToken);
         LoginToken GetTeslaLoginToken();
