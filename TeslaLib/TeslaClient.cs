@@ -131,7 +131,7 @@ namespace TeslaLib
             var token = await _tokenStoreForThisInstance.GetTokenAsync(Email);
 
             if (token == null)
-                throw new ArgumentNullException(nameof(token));
+                throw new SecurityException("Could not load any token for Tesla account "+Email);
 
             // Check expiration.  If we're within a short time of expiration, refresh it.
             // If the access token expired, we might still be able to use the refresh token.  We don't know how long
