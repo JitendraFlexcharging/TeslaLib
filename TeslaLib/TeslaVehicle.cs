@@ -170,6 +170,17 @@ namespace TeslaLib
                     throw new VehicleNotAvailableException();
             }
 
+            // 540 doesn't seem to be officially defined by W3C, but some people refer to it as "data inaccessible".
+            if (response.StatusCode == (HttpStatusCode)540)
+            {
+                // {"response":null,"error":"vehicle error: it is online but not responsive","error_description":""}
+                String errorMessage = ParseErrorFromJson(response);
+                if (!String.IsNullOrWhiteSpace(errorMessage))
+                    throw new VehicleNotAvailableException(errorMessage);
+                else
+                    throw new VehicleNotAvailableException();
+            }
+
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 // {"response":null,"error":"not_found","error_description":""}
