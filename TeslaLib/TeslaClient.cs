@@ -24,11 +24,9 @@ namespace TeslaLib
         public string TeslaClientId { get; }
         public string TeslaClientSecret { get; }
         public string AccessToken { get; private set; }
-       
         // For refresh token.
         private LoginToken _token;
-
-        public RestClient Client { get; set; }
+        public RestClient Client { get; set; } 
         public ITeslaAuthHelper TeslaAuthHelper { get; private set; }
 
         // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
@@ -115,9 +113,7 @@ namespace TeslaLib
 
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
-
-        public static IOAuthTokenStore OAuthTokenStore { get; set; }
-
+        public IOAuthTokenStore OAuthTokenStore { get; set; }
         public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
         {
             bool refreshingTokenFailed = false;

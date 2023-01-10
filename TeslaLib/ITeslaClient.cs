@@ -11,8 +11,9 @@ namespace TeslaLib
     {
         string AccessToken { get; }
         RestClient Client { get; set; }
-        string Email { get; }
-        ITeslaAuthHelper TeslaAuthHelper { get; }
+        string Email { get; }  
+        ITeslaAuthHelper TeslaAuthHelper { get; } 
+        IOAuthTokenStore OAuthTokenStore { get; set; }
         string TeslaClientId { get; }
         string TeslaClientSecret { get; }
         void ClearLoginTokenStore();
