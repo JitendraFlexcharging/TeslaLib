@@ -50,7 +50,7 @@ namespace TeslaLib
 
         // Use a global static one for the process, then optionally a tear-off copy of it that can be overridden
         // in the constructor for individual instances, for testing. 
-        public static IOAuthTokenStore TokenStoreForThisInstance { get; private set; }
+         public static IOAuthTokenStore TokenStoreForThisInstance { get; set; }
 
         // If we are within some time before our OAuth2 token expires, renew the token.  We used to use 2 weeks for comfort.
         // We used to get a refresh token that we strongly assumed was good for 45 days, just like the the access token.
