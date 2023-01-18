@@ -191,6 +191,15 @@ namespace TeslaLib
                     throw new VehicleNotFoundException();
             }
 
+            if (response.StatusCode == HttpStatusCode.BadRequest) {
+
+                var badRequest = new InvalidOperationException("Tesla considered it as a bad request");
+                badRequest.Data["StatusCode"] = response.StatusCode;
+                badRequest.Data["Response"] = response.Content;
+                TeslaClient.Logger.WriteLine($"Tesla server said we made a bad request for car {Vin} named {DisplayName} said we should retry later.  StatusCode: {response.StatusCode}, Response: {response.Content}");
+                throw badRequest;
+            }                
+
             TeslaClient.Logger.WriteLine("Unrecognized TeslaLib error for vehicle {0}.  Status code: {1}  Response content: \"{2}\"  Content length: {3}",
                 Vin, response.StatusCode, response.Content, response.Content.Length);
         }
