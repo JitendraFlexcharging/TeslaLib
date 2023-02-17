@@ -126,8 +126,6 @@ namespace TeslaAuth
         #region Public API for headless auth (only works if no CAPTCHA is displayed)
         public async Task<Tokens> AuthenticateAsync(string username, string password, string mfaCode = null, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("TeslaAuthHelper headless AuthenticateAsync doesn't work");
-            /*
             await InitializeLoginAsync(client, cancellationToken);
             var code = await GetAuthorizationCodeAsync(username, password, mfaCode, client, cancellationToken);
             var tokens = await ExchangeCodeForBearerTokenAsync(code, client, cancellationToken);
@@ -139,7 +137,6 @@ namespace TeslaAuth
                 CreatedAt = accessAndRefreshTokens.CreatedAt,
                 ExpiresIn = accessAndRefreshTokens.ExpiresIn
             };
-            */
         }
         #endregion Public API for headless auth (only works if no CAPTCHA is displayed)
 
