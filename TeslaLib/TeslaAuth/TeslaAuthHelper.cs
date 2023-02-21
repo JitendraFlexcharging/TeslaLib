@@ -513,14 +513,6 @@ namespace TeslaAuth
             }
         }
 
-        static string ToHex(byte[] bytes, bool upperCase)
-        {
-            StringBuilder result = new StringBuilder(bytes.Length * 2);
-            for (int i = 0; i < bytes.Length; i++)
-                result.Append(bytes[i].ToString(upperCase ? "X2" : "x2"));
-            return result.ToString();
-        }
-
         public static byte[] GetBytes(String s)
         {
             // This is just a passthrough.  We want to make sure that behavior for characters with a
@@ -539,8 +531,9 @@ namespace TeslaAuth
             String encoded = base64
                 .Replace('+', '-')
                 .Replace('/', '_')
-                .Replace("=", String.Empty)
-                .Trim();
+                .TrimEnd('=');
+            // Note: We are assuming that ToBase64String will never add trailing or leading spaces.
+            // We could call String.Trim;  we don't need to.
             return encoded;
         }
 
