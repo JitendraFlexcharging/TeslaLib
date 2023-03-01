@@ -580,6 +580,15 @@ namespace TeslaLib
                 TeslaClient.Logger.WriteLine("Tesla server said we made a bad request.  Response: {0}", response.Content);
                 throw badRequest;
             }
+
+            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                var teslaServerUnavailable = new TeslaServerException("Tesla's server was unavailable.");
+                teslaServerUnavailable.Data["StatusCode"] = response.StatusCode;
+                teslaServerUnavailable.Data["Response"] = response.Content;
+                TeslaClient.Logger.WriteLine("Tesla server was unavailable.  Response: {0}", response.Content);
+                throw teslaServerUnavailable;
+            }
         }
 
         private static String[] JsonSplit(String str)

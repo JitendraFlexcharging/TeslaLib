@@ -9,7 +9,11 @@ namespace TeslaLib
     /// </summary>
     public class TeslaServerException : Exception
     {
-        public TeslaServerException() : base("Tesla's server had an internal server error.")
+        public TeslaServerException() : this("Tesla's server had an internal server error.")
+        {
+        }
+
+        public TeslaServerException(string message) : base(message)
         {
         }
     }
