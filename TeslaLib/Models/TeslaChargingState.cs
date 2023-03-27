@@ -1,10 +1,8 @@
-using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace TeslaLib.Models
 {
-    [Obsolete("Please use TeslaChargingState instead.")]
-    public enum ChargingState
+    public enum TeslaChargingState
     {
         [EnumMember(Value = "Complete")]
         Complete,
