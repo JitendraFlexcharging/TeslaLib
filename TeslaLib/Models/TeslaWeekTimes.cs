@@ -1,10 +1,8 @@
-using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace TeslaLib.Models
 {
-    [Obsolete("Please use TeslaWeekTimes instead.")]
-    public enum WeekTimes
+    public enum TeslaWeekTimes
     {
         [EnumMember(Value = "")]  // ?
         Unknown,
