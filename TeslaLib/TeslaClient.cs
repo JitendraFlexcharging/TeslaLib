@@ -114,15 +114,12 @@ namespace TeslaLib
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
         public IOAuthTokenStore OAuthTokenStore { get; set; }
-        public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
+        public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefresh = false)
         {
             bool refreshingTokenFailed = false;
 
             if (string.IsNullOrWhiteSpace(Email))
-                throw new ArgumentNullException(nameof(Email));
-
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentNullException(nameof(password));
+                throw new ArgumentNullException(nameof(Email)); 
 
             var token = await TokenStoreForThisInstance.GetTokenAsync(Email);
 
@@ -136,7 +133,7 @@ namespace TeslaLib
 
             TimeSpan expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
 
-            if (expirationTimeFromNow < TokenExpirationRenewalWindow || forceRefreshOlderThanToday)
+            if (expirationTimeFromNow < TokenExpirationRenewalWindow || forceRefresh)
             {
                 LoginToken newToken = null;
 
@@ -185,35 +182,7 @@ namespace TeslaLib
 
                     token = null;
                 }
-            }
-
-            if (token == null)
-            {
-                try
-                {
-                    token = await GetLoginTokenAsync(password, mfaCode).ConfigureAwait(false);
-                }
-                catch (SecurityException)
-                {
-                    String getLoginTokenFailed = $"TeslaLib GetNewLoginTokenAsync failed for account {Email}";
-
-                    if (refreshingTokenFailed)
-                    {
-                        getLoginTokenFailed += "  Refreshing the login token had failed previously.";
-                    }
-
-                    Logger.WriteLine(getLoginTokenFailed);
-
-                    throw;
-                }
-
-                if (token == null)
-                    throw new SecurityException(String.Format("TeslaLib couldn't log in for user {0}", Email));
-
-                SetToken(token);
-
-                await TokenStoreForThisInstance.AddTokenAsync(Email, token);
-            }
+            } 
         }
 
         // This method relies solely on the IOAuthTokenStore to recover a valid OAuth2 token, using that and if needed refreshing it.
@@ -611,6 +580,15 @@ namespace TeslaLib
                 badRequest.Data["Response"] = response.Content;
                 TeslaClient.Logger.WriteLine("Tesla server said we made a bad request.  Response: {0}", response.Content);
                 throw badRequest;
+            }
+
+            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                var teslaServerUnavailable = new TeslaServerException("Tesla's server was unavailable.");
+                teslaServerUnavailable.Data["StatusCode"] = response.StatusCode;
+                teslaServerUnavailable.Data["Response"] = response.Content;
+                TeslaClient.Logger.WriteLine("Tesla server was unavailable.  Response: {0}", response.Content);
+                throw teslaServerUnavailable;
             }
         }
 

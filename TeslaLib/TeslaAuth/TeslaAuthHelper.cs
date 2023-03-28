@@ -83,8 +83,8 @@ namespace TeslaAuth
             if (client == null || String.IsNullOrWhiteSpace(client.BaseAddress.ToString()))
                 throw new InvalidOperationException("TeslaAuthHelper HTTP client not initialized correctly");
 
-            var code_challenge_SHA256 = ComputeSHA256Hash(loginInfo.CodeVerifier);
-            loginInfo.CodeChallenge = Convert.ToBase64String(Encoding.Default.GetBytes(code_challenge_SHA256));
+            byte[] code_challenge_SHA256 = ComputeSHA256HashInBytes(loginInfo.CodeVerifier);
+            loginInfo.CodeChallenge = Base64UrlEncode(code_challenge_SHA256);
 
             var b = new UriBuilder(client.BaseAddress + "oauth2/v3/authorize") { Port = -1 };
 
@@ -128,8 +128,6 @@ namespace TeslaAuth
         [Obsolete("AuthenticateAsync is marked as obsolete.")]
         public async Task<Tokens> AuthenticateAsync(string username, string password, string mfaCode = null, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("TeslaAuthHelper headless AuthenticateAsync doesn't work");
-            /*
             await InitializeLoginAsync(client, cancellationToken);
             var code = await GetAuthorizationCodeAsync(username, password, mfaCode, client, cancellationToken);
             var tokens = await ExchangeCodeForBearerTokenAsync(code, client, cancellationToken);
@@ -141,7 +139,6 @@ namespace TeslaAuth
                 CreatedAt = accessAndRefreshTokens.CreatedAt,
                 ExpiresIn = accessAndRefreshTokens.ExpiresIn
             };
-            */
         }
         #endregion Public API for headless auth (only works if no CAPTCHA is displayed)
 
@@ -491,13 +488,15 @@ namespace TeslaAuth
                 return HttpUtility.ParseQueryString(location.Query).Get("code");
             }
 
-            throw new Exception(String.Format("Unable to get authorization code.  StatusCode: {0}", result.StatusCode));
+            throw new Exception(String.Format("Unable to get Tesla authorization code.  StatusCode: {0}", result.StatusCode));
         }
         #endregion MFA helpers
 
         #region General Utilities
-        static string RandomString(int length)
+        public static string RandomString(int length)
         {
+            // Technically this should include the characters '-', '.', '_', and '~'.  However let's
+            // keep this simpler for now to avoid potential URL encoding issues.
             const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             lock (Random)
             {
@@ -506,27 +505,62 @@ namespace TeslaAuth
             }
         }
 
-        static string ComputeSHA256Hash(string text)
+        static byte[] ComputeSHA256HashInBytes(string text)
         {
-            string hashString;
             using (var sha256 = SHA256.Create())
             {
-                var hash = sha256.ComputeHash(Encoding.Default.GetBytes(text));
-                hashString = ToHex(hash, false);
+                byte[] textAsBytes = GetBytes(text);  // was Encoding.Default.GetBytes(text) but that depends on the current machine's code page settings.
+                var hash = sha256.ComputeHash(textAsBytes);
+                return hash;
             }
-
-            return hashString;
         }
 
-        static string ToHex(byte[] bytes, bool upperCase)
+        public static byte[] GetBytes(String s)
         {
-            StringBuilder result = new StringBuilder(bytes.Length * 2);
-            for (int i = 0; i < bytes.Length; i++)
-                result.Append(bytes[i].ToString(upperCase ? "X2" : "x2"));
-            return result.ToString();
+            // This is just a passthrough.  We want to make sure that behavior for characters with a
+            // code point value >= 128 is passed through as-is, without depending on your current
+            // machine's default ANSI code page or the exact behavior of ASCIIEncoding.  Some people
+            // are using UTF-8 but that may vary the length of the code verifier, perhaps inappropriately.
+            byte[] bytes = new byte[s.Length];
+            for(int i = 0; i<s.Length; i++)
+                bytes[i] = (byte)s[i];
+            return bytes;
         }
 
+        public static string Base64UrlEncode(byte[] bytes)
+        {
+            String base64 = Convert.ToBase64String(bytes);
+            String encoded = base64
+                .Replace('+', '-')
+                .Replace('/', '_')
+                .TrimEnd('=');
+            // Note: We are assuming that ToBase64String will never add trailing or leading spaces.
+            // We could call String.Trim;  we don't need to.
+            return encoded;
+        }
 
+        /// <summary>
+        /// For testing purposes, create a challenge from a code verifier. 
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="Exception"></exception>
+        public static string Challenge(string verifier)
+        {
+            if (verifier == null)
+                throw new ArgumentNullException(nameof(verifier));
+
+            var bytes = GetBytes(verifier);
+            using var hashAlgorithm = SHA256.Create();
+            var hash = hashAlgorithm.ComputeHash(bytes);
+            var challenge = Base64UrlEncode(hash);
+
+            if (String.IsNullOrEmpty(challenge))
+                throw new Exception("Failed to create challenge for verifier");
+            return challenge;
+        }
+		
         private static void ThrowException(String failingMethod, HttpResponseMessage result, string resultContent)
         {
             var ex = new Exception(String.Format("TeslaAuthHelper {0} failed.  Status: {1}  Reason: {2}", failingMethod, result.StatusCode, result.ReasonPhrase));
