@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>1.5.1</Version>
+    <Version>1.5.2</Version>
     <Title>TeslaLib</Title>
     <PackageId>TeslaLib</PackageId>
     <Authors>Raz Friman, Brian Grunkemeyer</Authors>
@@ -18,7 +18,7 @@
     <RepositoryUrl>https://github.com/briangru/TeslaLib/</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="RestSharp" Version="106.15.0" />
   </ItemGroup>
 </Project>
