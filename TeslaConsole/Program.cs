@@ -20,8 +20,7 @@ namespace TeslaConsole
 
             string password = "";
 
-
-            TeslaClient.TokenStoreForThisInstance = new FileBasedOAuthTokenStore();
+            TeslaClient.TokenStoreForThisProcess = new FileBasedOAuthTokenStore();
 
             TeslaClient client = new TeslaClient(email, clientId, clientSecret);
 
