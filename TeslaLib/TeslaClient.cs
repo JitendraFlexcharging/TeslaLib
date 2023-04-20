@@ -353,6 +353,7 @@ namespace TeslaLib
             Console.WriteLine($"Old expiry time: {_token.ExpiresUtc}");
             Console.WriteLine($"New access token: {newToken.AccessToken}\r\nNew refresh token: {newToken.RefreshToken}");
             Console.WriteLine($"New expiry time: {newToken.ExpiresUtc}");
+           
             SetToken(newToken);
 
             if (OAuthTokenStore != null)

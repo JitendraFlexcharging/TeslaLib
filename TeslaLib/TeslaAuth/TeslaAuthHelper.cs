@@ -124,6 +124,8 @@ namespace TeslaAuth
         #endregion Public API for browser-assisted auth
 
         #region Public API for headless auth (only works if no CAPTCHA is displayed)
+        
+        [Obsolete("AuthenticateAsync is marked as obsolete.")]
         public async Task<Tokens> AuthenticateAsync(string username, string password, string mfaCode = null, CancellationToken cancellationToken = default)
         {
             await InitializeLoginAsync(client, cancellationToken);

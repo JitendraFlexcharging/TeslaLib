@@ -1,9 +1,6 @@
-using System;
-
-namespace TeslaLib.Models
+﻿namespace TeslaLib.Models
 {
-    [Obsolete("Please use VehicleModel instead.")]
-    public enum Model
+    public enum VehicleModel
     {
         Unknown,
         S,
