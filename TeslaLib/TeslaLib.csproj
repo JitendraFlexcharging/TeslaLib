@@ -12,7 +12,7 @@
     <Description>TeslaServiceUnavailable Exception update.</Description>
     <Summary>Tesla Model S C# API Implementation</Summary>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <Copyright>Copyright 2018, 2019, 2020, 2021, 2022</Copyright>
+    <Copyright>Copyright 2018, 2019, 2020, 2021, 2022, 2023</Copyright>
     <PackageTags>Tesla Model S 3 X Y API C# Vehicle Remote Wrappers</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/briangru/TeslaLib/</RepositoryUrl>
