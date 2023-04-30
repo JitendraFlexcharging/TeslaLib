@@ -214,58 +214,55 @@ namespace TeslaLib
             return null;
         }
 
+        [Obsolete("Use LoadVehicleData then look at the ChargeState property")]
         public ChargeStateStatus LoadChargeStateStatus()
         {
-            var request = new RestRequest("vehicles/{id}/data_request/charge_state");
-            request.AddParameter("id", Id, ParameterType.UrlSegment);
-
-            var response = Client.Get(request);
-            return ParseResult<ChargeStateStatus>(response, timeoutMeansReturnNull: false);
+            var data = LoadVehicleData();
+            return data?.ChargeState;
         }
 
+        [Obsolete("Use LoadVehicleData then look at the ClimateState property")]
         public ClimateStateStatus LoadClimateStateStatus()
         {
-            var request = new RestRequest("vehicles/{id}/data_request/climate_state");
-            request.AddParameter("id", Id, ParameterType.UrlSegment);
-
-            var response = Client.Get(request);
-            return ParseResult<ClimateStateStatus>(response, timeoutMeansReturnNull: true);
+            var data = LoadVehicleData();
+            return data?.ClimateState;
         }
 
+        [Obsolete("Use LoadVehicleData then look at the DriveState property")]
         public DriveStateStatus LoadDriveStateStatus()
         {
-            var request = new RestRequest("vehicles/{id}/data_request/drive_state");
-            request.AddParameter("id", Id, ParameterType.UrlSegment);
-
-            var response = Client.Get(request);
-            return ParseResult<DriveStateStatus>(response, timeoutMeansReturnNull: true);
+            var data = LoadVehicleData();
+            return data?.DriveState;
         }
 
+        [Obsolete("Use LoadVehicleData then look at the GuiState property")]
         public GuiSettingsStatus LoadGuiStateStatus()
         {
-            var request = new RestRequest("vehicles/{id}/data_request/gui_settings");
-            request.AddParameter("id", Id, ParameterType.UrlSegment);
-
-            var response = Client.Get(request);
-            return ParseResult<GuiSettingsStatus>(response, timeoutMeansReturnNull: true);
+            var data = LoadVehicleData();
+            return data?.GuiSettings;
         }
 
+        [Obsolete("Use LoadVehicleData then look at the VehicleConfig property")]
         public VehicleConfig LoadVehicleConfig()
         {
-            var request = new RestRequest("vehicles/{id}/data_request/vehicle_config");
-            request.AddParameter("id", Id, ParameterType.UrlSegment);
-
-            var response = Client.Get(request);
-            return ParseResult<VehicleConfig>(response, timeoutMeansReturnNull: true);
+            var data = LoadVehicleData();
+            return data?.VehicleConfig;
         }
 
+        [Obsolete("Use LoadVehicleData then look at the VehicleState property")]
         public VehicleStateStatus LoadVehicleStateStatus()
         {
-            var request = new RestRequest("vehicles/{id}/data_request/vehicle_state");
+            var data = LoadVehicleData();
+            return data?.VehicleState;
+        }
+
+        public VehicleData LoadVehicleData()
+        {
+            var request = new RestRequest("vehicles/{id}/vehicle_data");  // REST client already has api/1 in path.
             request.AddParameter("id", Id, ParameterType.UrlSegment);
 
             var response = Client.Get(request);
-            return ParseResult<VehicleStateStatus>(response, timeoutMeansReturnNull: true);
+            return ParseResult<VehicleData>(response, timeoutMeansReturnNull: true);
         }
 
         #endregion State and Settings
