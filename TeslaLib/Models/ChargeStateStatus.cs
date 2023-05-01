@@ -157,17 +157,15 @@ namespace TeslaLib.Models
      */
     public class ChargeStateStatus
     {
-        [JsonProperty(PropertyName = "tesla_charging_state")]
+        [JsonProperty(PropertyName = "charging_state")]
         [JsonConverter(typeof(StringEnumConverter))]
         public TeslaChargingState? TeslaChargingState { get; set; }
 
-        // Note: the ChargingState started coming back as null around June 2017, coinciding with a significant
-        // Tesla software update.  They apparently upgraded from Linux kernel 2.6.36 to 4.4.35.  They may have changed
-        // a lot of Tesla's software stack too.
         [Obsolete("Please use TeslaChargingState instead.")]
-        [JsonProperty(PropertyName = "charging_state")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public ChargingState? ChargingState { get; set; }
+        public ChargingState? ChargingState { 
+            get { return TeslaChargingState.HasValue ? new Nullable<ChargingState>((ChargingState)TeslaChargingState.Value) : null; }
+            set { TeslaChargingState = value.HasValue ? TeslaChargingState = (TeslaChargingState)value.Value : null; }
+        }
 
         [JsonProperty(PropertyName = "battery_heater_on")]
         public bool? IsBatteryHeaterOn { get; set; }
@@ -265,13 +263,13 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "scheduled_charging_start_time_minutes")]
         public int? ScheduledChargingStartTimeMinutes { get; set; }
 
-        [JsonProperty(PropertyName = "scheduled_charging_mode")]
-        [JsonConverter(typeof(StringEnumConverter))]
         [Obsolete("Please use TeslaScheduledChargingMode instead.")]
-        public ScheduledChargingMode ScheduledChargingMode { get; set; }
+        public ScheduledChargingMode ScheduledChargingMode { 
+            get { return (ScheduledChargingMode)TeslaScheduledChargingMode; }
+            set { TeslaScheduledChargingMode = (TeslaScheduledChargingMode)value; }
+        }
 
-
-        [JsonProperty(PropertyName = "tesla_scheduled_charging_mode")]
+        [JsonProperty(PropertyName = "scheduled_charging_mode")]
         [JsonConverter(typeof(StringEnumConverter))]
         public TeslaScheduledChargingMode TeslaScheduledChargingMode { get; set; }
         
@@ -347,12 +345,13 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "off_peak_charging_enabled")]
         public bool OffPeakChargingEnabled { get; set; }
 
-        [JsonProperty(PropertyName = "off_peak_charging_times")]
-        [JsonConverter(typeof(StringEnumConverter))]
         [Obsolete("Please use TeslaOffPeakChargingTimes instead.")]
-        public WeekTimes OffPeakChargingTimes { get; set; }
+        public WeekTimes OffPeakChargingTimes {
+            get { return (WeekTimes)TeslaOffPeakChargingTimes; }
+            set { TeslaOffPeakChargingTimes = (TeslaWeekTimes)value; }
+        }
 
-        [JsonProperty(PropertyName = "tesla_off_peak_charging_times")]
+        [JsonProperty(PropertyName = "off_peak_charging_times")]
         [JsonConverter(typeof(StringEnumConverter))]
         public TeslaWeekTimes TeslaOffPeakChargingTimes { get; set; }
 
@@ -363,11 +362,13 @@ namespace TeslaLib.Models
         [JsonProperty(PropertyName = "preconditioning_enabled")]
         public bool PreconditioningEnabled { get; set; }
 
-        [JsonProperty(PropertyName = "preconditioning_times")]
         [Obsolete("Please use TeslaPreconditioningTimes instead.")]
-        public WeekTimes PreconditioningTimes { get; set; }
+        public WeekTimes PreconditioningTimes {
+            get { return (WeekTimes) TeslaPreconditioningTimes; }
+            set { TeslaPreconditioningTimes = (TeslaWeekTimes)value; }
+        }
 
-        [JsonProperty(PropertyName = "tesla_preconditioning_times")]
+        [JsonProperty(PropertyName = "preconditioning_times")]
         public TeslaWeekTimes TeslaPreconditioningTimes { get; set; }
     }
 }
