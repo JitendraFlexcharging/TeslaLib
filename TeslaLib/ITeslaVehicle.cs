@@ -1,4 +1,5 @@
 ﻿using RestSharp;
+using System;
 using System.Collections.Generic;
 using TeslaLib.Models;
 
@@ -23,14 +24,29 @@ namespace TeslaLib
         ResultStatus EnableValetMode(int password);
         ResultStatus FlashLights();
         ResultStatus HonkHorn();
+
+        VehicleData LoadVehicleData();
+
+        [Obsolete("Use LoadVehicleData")]
         ChargeStateStatus LoadChargeStateStatus();
+
+        [Obsolete("Use LoadVehicleData")]
         ClimateStateStatus LoadClimateStateStatus();
+
+        [Obsolete("Use LoadVehicleData")]
         DriveStateStatus LoadDriveStateStatus();
+
+        [Obsolete("Use LoadVehicleData")]
         GuiSettingsStatus LoadGuiStateStatus();
         bool LoadMobileEnabledStatus();
         string LoadStreamingValues(string values);
+
+        [Obsolete("Use LoadVehicleData")]
         VehicleConfig LoadVehicleConfig();
+
+        [Obsolete("Use LoadVehicleData")]
         VehicleStateStatus LoadVehicleStateStatus();
+
         ResultStatus LockDoors();
         ResultStatus OpenChargePortDoor();
         ResultStatus OpenFrontTrunk();
