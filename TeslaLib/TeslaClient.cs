@@ -113,7 +113,8 @@ namespace TeslaLib
 
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
-        public IOAuthTokenStore OAuthTokenStore { get; set; }
+        public IOAuthTokenStore OAuthTokenStore { get; set; } 
+        public IOAuthTokenDataBase OAuthTokenStoreDataBase { get; set; } 
         public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
         {
             bool refreshingTokenFailed = false;

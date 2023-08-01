@@ -26,6 +26,7 @@ namespace TeslaLib
         Task LoginUsingTokenStoreWithoutPasswordAsync();
         Task LoginWithExistingToken(LoginToken loginToken);
         Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync();
-        Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken);
+        Task<LoginToken> RefreshLoginTokenAsync(LoginToken loginToken); 
+        IOAuthTokenDataBase OAuthTokenStoreDataBase { get; set; }
     }
 }
