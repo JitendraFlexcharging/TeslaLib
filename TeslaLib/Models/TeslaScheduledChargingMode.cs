@@ -1,10 +1,8 @@
-using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace TeslaLib.Models
 {
-    [Obsolete("Please use TeslaScheduledChargingMode instead.")]
-    public enum ScheduledChargingMode
+    public enum TeslaScheduledChargingMode
     {
         [EnumMember(Value = "Off")]
         Off,

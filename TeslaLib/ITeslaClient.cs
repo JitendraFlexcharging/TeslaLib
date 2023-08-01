@@ -22,7 +22,7 @@ namespace TeslaLib
         List<TeslaVehicle> LoadVehicles();
         Task<List<TeslaVehicle>> LoadVehiclesAsync(CancellationToken cancellationToken);
         Task LoginAsync(string password, string mfaCode = null);
-        Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false);
+        Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefresh = false);
         Task LoginUsingTokenStoreWithoutPasswordAsync();
         Task LoginWithExistingToken(LoginToken loginToken);
         Task<bool> RefreshLoginTokenAndUpdateTokenStoreAsync();

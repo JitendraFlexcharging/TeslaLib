@@ -26,7 +26,7 @@ namespace TeslaLib
         public string AccessToken { get; private set; }
         // For refresh token.
         private LoginToken _token;
-        public RestClient Client { get; set; } 
+        public RestClient Client { get; set; }
         public ITeslaAuthHelper TeslaAuthHelper { get; private set; }
 
         // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
@@ -48,9 +48,11 @@ namespace TeslaLib
 
         public static TextWriter Logger = TextWriter.Null;
 
-        // Use a global static one for the process, then optionally a tear-off copy of it that can be overridden
-        // in the constructor for individual instances, for testing. 
-         public static IOAuthTokenStore TokenStoreForThisInstance { get; set; }
+        /// <summary>
+        /// Process-wide default IOAuthTokenStore.  This can be overridden for specific instances by setting the OAuthTokenStore property.
+        /// </summary>
+        /// <see cref="OAuthTokenStore"/>
+        public static IOAuthTokenStore TokenStoreForThisProcess { get; set; }
 
         // If we are within some time before our OAuth2 token expires, renew the token.  We used to use 2 weeks for comfort.
         // We used to get a refresh token that we strongly assumed was good for 45 days, just like the the access token.
@@ -92,7 +94,7 @@ namespace TeslaLib
 
             Client.Authenticator = new TeslaAuthenticator();
 
-            TokenStoreForThisInstance = OAuthTokenStore;
+            OAuthTokenStore = TokenStoreForThisProcess;
 
             TeslaAuthHelper = new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
@@ -109,7 +111,7 @@ namespace TeslaLib
 
             Client.Authenticator = new TeslaAuthenticator();
 
-            TokenStoreForThisInstance = iOAuthTokenStore;
+            OAuthTokenStore = iOAuthTokenStore ?? TokenStoreForThisProcess;
 
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
@@ -117,18 +119,15 @@ namespace TeslaLib
         public IOAuthTokenDataBase OAuthTokenStoreDataBase { get; set; } 
         public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
         {
-            bool refreshingTokenFailed = false;
-
             if (string.IsNullOrWhiteSpace(Email))
                 throw new ArgumentNullException(nameof(Email));
+            if (OAuthTokenStore == null)
+                throw new InvalidOperationException("No Tesla token store set up");
 
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentNullException(nameof(password));
-
-            var token = await TokenStoreForThisInstance.GetTokenAsync(Email);
+            var token = await OAuthTokenStore.GetTokenAsync(Email);
 
             if (token == null)
-                throw new SecurityException("Could not load any token for Tesla account "+Email);
+                throw new SecurityException("Could not load any token for Tesla account " + Email);
 
             // Check expiration.  If we're within a short time of expiration, refresh it.
             // If the access token expired, we might still be able to use the refresh token.  We don't know how long
@@ -149,8 +148,6 @@ namespace TeslaLib
                 }
                 catch (Exception e)
                 {
-                    refreshingTokenFailed = true;
-
                     Object serializedResponse = e.Data["SerializedResponse"];
 
                     String errMsg = String.Format("TeslaLib LoginUsingTokenStoreAsync couldn't refresh a login token while logging in for account {5}.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
@@ -161,9 +158,9 @@ namespace TeslaLib
 
                 if (newToken != null)
                 {
-                    await TokenStoreForThisInstance.UpdateTokenAsync(Email, newToken);
+                    await OAuthTokenStore.UpdateTokenAsync(Email, newToken);
 
-                    await TokenStoreForThisInstance.DeleteSpecificTokenAsync(Email, token);
+                    await OAuthTokenStore.DeleteSpecificTokenAsync(Email, token);
 
                     token = newToken;
                 }
@@ -187,34 +184,6 @@ namespace TeslaLib
                     token = null;
                 }
             }
-
-            if (token == null)
-            {
-                try
-                {
-                    token = await GetLoginTokenAsync(password, mfaCode).ConfigureAwait(false);
-                }
-                catch (SecurityException)
-                {
-                    String getLoginTokenFailed = $"TeslaLib GetNewLoginTokenAsync failed for account {Email}";
-
-                    if (refreshingTokenFailed)
-                    {
-                        getLoginTokenFailed += "  Refreshing the login token had failed previously.";
-                    }
-
-                    Logger.WriteLine(getLoginTokenFailed);
-
-                    throw;
-                }
-
-                if (token == null)
-                    throw new SecurityException(String.Format("TeslaLib couldn't log in for user {0}", Email));
-
-                SetToken(token);
-
-                await TokenStoreForThisInstance.AddTokenAsync(Email, token);
-            }
         }
 
         // This method relies solely on the IOAuthTokenStore to recover a valid OAuth2 token, using that and if needed refreshing it.
@@ -222,9 +191,9 @@ namespace TeslaLib
         public async Task LoginUsingTokenStoreWithoutPasswordAsync()
         {
             LoginToken token = null;
-            if (TokenStoreForThisInstance != null)
+            if (OAuthTokenStore != null)
             {
-                token = await TokenStoreForThisInstance.GetTokenAsync(Email);
+                token = await OAuthTokenStore.GetTokenAsync(Email);
             }
 
             if (token != null)
@@ -241,7 +210,7 @@ namespace TeslaLib
                     if (newToken == null)
                     {
                         Logger.WriteLine("TeslaLib had an expired login token, tried refreshing it, and failed for account {0}", Email);
-                        await TokenStoreForThisInstance.DeleteTokenAsync(Email);
+                        await OAuthTokenStore.DeleteTokenAsync(Email);
                         token = null;
                     }
                 }
@@ -249,7 +218,7 @@ namespace TeslaLib
                 {
                     // We have a valid access token, but it's close to expiry.  Try getting a new one, but don't block if that fails.
                     var newToken = await RefreshLoginTokenAsync(token);
-                    if (TokenStoreForThisInstance != null)
+                    if (OAuthTokenStore != null)
                     {
                         if (newToken == null)
                         {
@@ -261,7 +230,7 @@ namespace TeslaLib
                         }
                         else
                         {
-                            await TokenStoreForThisInstance.UpdateTokenAsync(Email, newToken);
+                            await OAuthTokenStore.UpdateTokenAsync(Email, newToken);
                             token = newToken;
                         }
                     }
@@ -313,7 +282,7 @@ namespace TeslaLib
 
                 throw e;
             }
-        } 
+        }
 
         public async Task LoginWithExistingToken(LoginToken loginToken)
         {
@@ -322,7 +291,7 @@ namespace TeslaLib
             if (loginToken.ExpiresUtc < DateTime.Now)
                 throw new ArgumentException("Login token provided has expired");
 
-             SetToken(loginToken);
+            SetToken(loginToken);
         }
 
         private static LoginToken ConvertTeslaAuthTokensToLoginToken(Tokens tokens)
@@ -361,8 +330,8 @@ namespace TeslaLib
 
         public void ClearLoginTokenStore()
         {
-            if (TokenStoreForThisInstance != null)
-                TokenStoreForThisInstance.ClearCache();
+            if (OAuthTokenStore != null)
+                OAuthTokenStore.ClearCache();
         }
 
         // For testing purposes.
@@ -379,11 +348,12 @@ namespace TeslaLib
             Console.WriteLine($"Old expiry time: {_token.ExpiresUtc}");
             Console.WriteLine($"New access token: {newToken.AccessToken}\r\nNew refresh token: {newToken.RefreshToken}");
             Console.WriteLine($"New expiry time: {newToken.ExpiresUtc}");
+           
             SetToken(newToken);
 
-            if (TokenStoreForThisInstance != null)
+            if (OAuthTokenStore != null)
             {
-                await TokenStoreForThisInstance.UpdateTokenAsync(Email, newToken);
+                await OAuthTokenStore.UpdateTokenAsync(Email, newToken);
             }
             return true;
         }
@@ -612,6 +582,15 @@ namespace TeslaLib
                 TeslaClient.Logger.WriteLine("Tesla server said we made a bad request.  Response: {0}", response.Content);
                 throw badRequest;
             }
+
+            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                var teslaServerUnavailable = new TeslaServerException("Tesla's server was unavailable.");
+                teslaServerUnavailable.Data["StatusCode"] = response.StatusCode;
+                teslaServerUnavailable.Data["Response"] = response.Content;
+                TeslaClient.Logger.WriteLine("Tesla server was unavailable.  Response: {0}", response.Content);
+                throw teslaServerUnavailable;
+            }
         }
 
         private static String[] JsonSplit(String str)
@@ -679,7 +658,7 @@ namespace TeslaLib
                     errorMsg = errorDescription.Substring(firstQuote + 1, secondQuote - firstQuote - 1);
                 }
             }
-            
+
             String msg = (accountName == null) ? "Tesla authorization error.  " : "Tesla authorization error for account " + accountName + ".  ";
             if (successfullyRefreshedToken)
                 msg += "Try again.";
