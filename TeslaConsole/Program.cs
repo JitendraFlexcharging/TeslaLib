@@ -17,10 +17,10 @@ namespace TeslaConsole
             string clientSecret = TESLA_CLIENT_SECRET;
 
             string email = "";
+
             string password = "";
 
-
-            TeslaClient.OAuthTokenStore = new FileBasedOAuthTokenStore();
+            TeslaClient.TokenStoreForThisProcess = new FileBasedOAuthTokenStore();
 
             TeslaClient client = new TeslaClient(email, clientId, clientSecret);
 
@@ -29,6 +29,15 @@ namespace TeslaConsole
             //client.LoginUsingTokenStoreWithoutPasswordAsync().Wait();
             client.LoginUsingTokenStoreAsync(password).Wait();
             //client.LoginAsync(password).Wait();
+
+            /*
+            LoginToken loginToken = new LoginToken();
+            loginToken.AccessToken = "";
+            loginToken.RefreshToken = "";
+            loginToken.CreatedUtc = new DateTimeOffset(2023, 04, 30, 14, 59, 0, TimeSpan.FromHours(-7)).UtcDateTime;
+            loginToken.ExpiresInTimespan = TimeSpan.FromHours(8);
+            client.LoginWithExistingToken(loginToken).Wait();
+            */
 
             /*
             try
@@ -129,7 +138,8 @@ namespace TeslaConsole
 
                 Console.WriteLine("Is mobile access enabled?  {0}", car.LoadMobileEnabledStatus());
 
-                var vehicleState = car.LoadVehicleStateStatus();
+                var vehicleData = car.LoadVehicleData();
+                var vehicleState = vehicleData.VehicleState;
                 if (vehicleState == null)
                     Console.WriteLine("Vehicle state was null!  Is the car not awake?");
                 else
@@ -144,7 +154,7 @@ namespace TeslaConsole
                     Console.WriteLine("API version: {0}  Car version: {1}", vehicleState.ApiVersion.GetValueOrDefault(), vehicleState.CarVersion);
                 }
 
-                var vehicleConfig = car.LoadVehicleConfig();
+                var vehicleConfig = vehicleData.VehicleConfig;
                 if (vehicleConfig == null)
                     Console.WriteLine("Couldn't get vehicle configuration");
                 else
@@ -157,12 +167,12 @@ namespace TeslaConsole
                     Console.WriteLine("Wheels: {0}", vehicleConfig.WheelType);
                 }
 
-                var chargeState = car.LoadChargeStateStatus();
+                var chargeState = vehicleData.ChargeState;
                 Console.WriteLine($" State of charge: {chargeState.BatteryLevel}%  Desired State of charge: {chargeState.ChargeLimitSoc}%");
-                Console.WriteLine($" Charging state: {(chargeState.ChargingState.HasValue ? chargeState.ChargingState.Value.ToString() : "unknown")}");
+                Console.WriteLine($" Charging state: {(chargeState.TeslaChargingState.HasValue ? chargeState.TeslaChargingState.Value.ToString() : "unknown")}");
                 Console.WriteLine($"  Time until full charge: {chargeState.TimeUntilFullCharge} hours ({60*chargeState.TimeUntilFullCharge} minutes)  Usable battery level: {chargeState.UsableBatteryLevel}%");
                 Console.WriteLine($" Charge current request in Amps: {chargeState.ChargeCurrentRequest}  Max charge current request: {chargeState.ChargeCurrentRequestMax}");
-                Console.WriteLine($" Scheduled charging mode: {chargeState.ScheduledChargingMode}");
+                Console.WriteLine($" Scheduled charging mode: {chargeState.TeslaScheduledChargingMode}");
                 Console.WriteLine($" Scheduled charging time: {chargeState.ScheduledChargingStartTime}  Minutes: {chargeState.ScheduledChargingStartTimeMinutes}");
                 Console.WriteLine($"    Scheduled charging start time app: {chargeState.ScheduledChargingStartTimeApp}");
                 Console.WriteLine($" Scheduled departure time: {chargeState.ScheduledDepartureTime}  Minutes: {chargeState.ScheduledDepartureTimeMinutes}");
@@ -170,12 +180,12 @@ namespace TeslaConsole
                 Console.WriteLine($" Managed charging active? {chargeState.ManagedChargingActive}  Managed charging start time? {chargeState.ManagedChargingStartTime}");
                 Console.WriteLine($" Managed charging user canceled? {chargeState.ManagedChargingUserCanceled}");
                 Console.WriteLine($" Off-peak charging enabled?  {chargeState.OffPeakChargingEnabled}");
-                Console.WriteLine($" Off-peak charging times: {chargeState.OffPeakChargingTimes}  End time: {chargeState.OffPeakHoursEndTime}");
-                Console.WriteLine($" Preconditioning enabled? {chargeState.PreconditioningEnabled}  Times: {chargeState.PreconditioningTimes}");
+                Console.WriteLine($" Off-peak charging times: {chargeState.TeslaOffPeakChargingTimes}  End time: {chargeState.OffPeakHoursEndTime}");
+                Console.WriteLine($" Preconditioning enabled? {chargeState.PreconditioningEnabled}  Times: {chargeState.TeslaPreconditioningTimes}");
 
-                var driveState = car.LoadDriveStateStatus();
+                var driveState = vehicleData.DriveState;
                 Console.WriteLine("  Shift state: {0}", driveState.ShiftState);
-                var guiSettings = car.LoadGuiStateStatus();
+                var guiSettings = vehicleData.GuiSettings;
                 Console.WriteLine("  Units for distance: {0}   For temperature: {1}", guiSettings.DistanceUnits, guiSettings.TemperatureUnits);
 
                 var options = car.Options;
@@ -185,7 +195,7 @@ namespace TeslaConsole
                 Console.WriteLine($"  Charger limit: {options.ChargerLimit}");
                 Console.WriteLine($"Option Codes: {car.Options.RawOptionCodes}");
 
-                var climate = car.LoadClimateStateStatus();
+                var climate = vehicleData.ClimateState;
                 Console.WriteLine("Climate:");
                 Console.WriteLine($"  Driver temperature: {climate.DriverTemperatureSetting}  Passenger: {climate.PassengerTemperatureSetting}");
                 Console.WriteLine($"  ClimateKeeperMode: {climate.ClimateKeeperMode}");

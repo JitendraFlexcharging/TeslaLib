@@ -156,200 +156,219 @@ namespace TeslaLib.Models
      * "time_to_full_charge":3.08,"timestamp":1657869650448,"trip_charging":false,"usable_battery_level":53,"user_charge_enable_request":null}}
      */
     public class ChargeStateStatus
-{
-    // Note: the ChargingState started coming back as null around June 2017, coinciding with a significant
-    // Tesla software update.  They apparently upgraded from Linux kernel 2.6.36 to 4.4.35.  They may have changed
-    // a lot of Tesla's software stack too.
-    [JsonProperty(PropertyName = "charging_state")]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public ChargingState? ChargingState { get; set; }
+    {
+        [JsonProperty(PropertyName = "charging_state")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public TeslaChargingState? TeslaChargingState { get; set; }
 
-    [JsonProperty(PropertyName = "battery_heater_on")]
-    public bool? IsBatteryHeaterOn { get; set; }
+        [Obsolete("Please use TeslaChargingState instead.")]
+        public ChargingState? ChargingState { 
+            get { return TeslaChargingState.HasValue ? new Nullable<ChargingState>((ChargingState)TeslaChargingState.Value) : null; }
+            set { TeslaChargingState = value.HasValue ? TeslaChargingState = (TeslaChargingState)value.Value : null; }
+        }
 
-    [JsonProperty(PropertyName = "battery_level")]
-    public int? BatteryLevel { get; set; }
+        [JsonProperty(PropertyName = "battery_heater_on")]
+        public bool? IsBatteryHeaterOn { get; set; }
 
-    [JsonProperty(PropertyName = "battery_range")]
-    public double? BatteryRange { get; set; }
+        [JsonProperty(PropertyName = "battery_level")]
+        public int? BatteryLevel { get; set; }
 
-    [JsonProperty(PropertyName = "charge_enable_request")]
-    public bool IsChargeEnableRequest { get; set; }
+        [JsonProperty(PropertyName = "battery_range")]
+        public double? BatteryRange { get; set; }
 
-    [JsonProperty(PropertyName = "charge_limit_soc")]
-    public int ChargeLimitSoc { get; set; }
+        [JsonProperty(PropertyName = "charge_enable_request")]
+        public bool IsChargeEnableRequest { get; set; }
 
-    [JsonProperty(PropertyName = "charge_limit_soc_max")]
-    public int ChargeLimitSocMax { get; set; }
+        [JsonProperty(PropertyName = "charge_limit_soc")]
+        public int ChargeLimitSoc { get; set; }
 
-    [JsonProperty(PropertyName = "charge_limit_soc_min")]
-    public int ChargeLimitSocMin { get; set; }
+        [JsonProperty(PropertyName = "charge_limit_soc_max")]
+        public int ChargeLimitSocMax { get; set; }
 
-    [JsonProperty(PropertyName = "charge_limit_soc_std")]
-    public int ChargeLimitSocStd { get; set; }
+        [JsonProperty(PropertyName = "charge_limit_soc_min")]
+        public int ChargeLimitSocMin { get; set; }
 
-    [JsonProperty(PropertyName = "charge_port_door_open")]
-    public bool? IsChargePortDoorOpen { get; set; }
+        [JsonProperty(PropertyName = "charge_limit_soc_std")]
+        public int ChargeLimitSocStd { get; set; }
 
-    [JsonProperty(PropertyName = "charge_rate")]
-    public double ChargeRate { get; set; }
+        [JsonProperty(PropertyName = "charge_port_door_open")]
+        public bool? IsChargePortDoorOpen { get; set; }
 
-    // No longer returned as of Jan 2016.
-    //[JsonProperty(PropertyName = "charge_starting_range")]
-    //public int? ChargeStartingRange { get; set; }
+        [JsonProperty(PropertyName = "charge_rate")]
+        public double ChargeRate { get; set; }
 
-    //[JsonProperty(PropertyName = "charge_starting_soc")]
-    //public int? ChargeStartingSoc { get; set; }
+        // No longer returned as of Jan 2016.
+        //[JsonProperty(PropertyName = "charge_starting_range")]
+        //public int? ChargeStartingRange { get; set; }
 
-    [JsonProperty(PropertyName = "charge_to_max_range")]
-    public bool IsChargeToMaxRange { get; set; }
+        //[JsonProperty(PropertyName = "charge_starting_soc")]
+        //public int? ChargeStartingSoc { get; set; }
 
-    [JsonProperty(PropertyName = "charger_actual_current")]
-    public int? ChargerActualCurrent { get; set; }
+        [JsonProperty(PropertyName = "charge_to_max_range")]
+        public bool IsChargeToMaxRange { get; set; }
 
-    [JsonProperty(PropertyName = "charger_pilot_current")]
-    public int? ChargerPilotCurrent { get; set; }
+        [JsonProperty(PropertyName = "charger_actual_current")]
+        public int? ChargerActualCurrent { get; set; }
 
-    [JsonProperty(PropertyName = "charger_power")]
-    public int? ChargerPower { get; set; }
+        [JsonProperty(PropertyName = "charger_pilot_current")]
+        public int? ChargerPilotCurrent { get; set; }
 
-    [JsonProperty(PropertyName = "charger_voltage")]
-    public int? ChargerVoltage { get; set; }           // null when a car is starting to charge.
+        [JsonProperty(PropertyName = "charger_power")]
+        public int? ChargerPower { get; set; }
 
-    [JsonProperty(PropertyName = "est_battery_range")]
-    public double? EstimatedBatteryRange { get; set; }
+        [JsonProperty(PropertyName = "charger_voltage")]
+        public int? ChargerVoltage { get; set; }           // null when a car is starting to charge.
 
-    [JsonProperty(PropertyName = "fast_charger_present")]
-    public bool? IsUsingSupercharger { get; set; }
+        [JsonProperty(PropertyName = "est_battery_range")]
+        public double? EstimatedBatteryRange { get; set; }
 
-    [JsonProperty(PropertyName = "ideal_battery_range")]
-    public double? IdealBatteryRange { get; set; }
+        [JsonProperty(PropertyName = "fast_charger_present")]
+        public bool? IsUsingSupercharger { get; set; }
 
-    [JsonProperty(PropertyName = "max_range_charge_counter")]
-    public int? MaxRangeChargeCounter { get; set; }
+        [JsonProperty(PropertyName = "ideal_battery_range")]
+        public double? IdealBatteryRange { get; set; }
 
-    [JsonProperty(PropertyName = "not_enough_power_to_heat")]
-    public bool? IsNotEnoughPowerToHeat { get; set; }
+        [JsonProperty(PropertyName = "max_range_charge_counter")]
+        public int? MaxRangeChargeCounter { get; set; }
 
-    [JsonProperty(PropertyName = "scheduled_charging_pending")]
-    public bool ScheduledChargingPending { get; set; }
+        [JsonProperty(PropertyName = "not_enough_power_to_heat")]
+        public bool? IsNotEnoughPowerToHeat { get; set; }
 
-    // This is a Unix time value in seconds from 1970 in UTC.
-    // We need to use a JsonConverter to make this work.
-    [JsonProperty(PropertyName = "scheduled_charging_start_time")]
-    [JsonConverter(typeof(UnixTimestampConverter))]
-    public DateTime? ScheduledChargingStartTime { get; set; }
+        [JsonProperty(PropertyName = "scheduled_charging_pending")]
+        public bool ScheduledChargingPending { get; set; }
 
-    // This is a Unix time value in seconds from 1970 in UTC.
-    // We need to use a JsonConverter to make this work.
-    [JsonProperty(PropertyName = "scheduled_departure_time")]
-    [JsonConverter(typeof(UnixTimestampConverter))]
-    public DateTime? ScheduledDepartureTime { get; set; }
+        // This is a Unix time value in seconds from 1970 in UTC.
+        // We need to use a JsonConverter to make this work.
+        [JsonProperty(PropertyName = "scheduled_charging_start_time")]
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        public DateTime? ScheduledChargingStartTime { get; set; }
 
-    // This is a time of day in minutes.  IE, 660 is 11:00 AM
-    // Seems like this is redundant with scheduled_charging_start_time_minutes.
-    [JsonProperty(PropertyName = "scheduled_departure_time_minutes")]
-    public int? ScheduledDepartureTimeMinutes { get; set; }
+        // This is a Unix time value in seconds from 1970 in UTC.
+        // We need to use a JsonConverter to make this work.
+        [JsonProperty(PropertyName = "scheduled_departure_time")]
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        public DateTime? ScheduledDepartureTime { get; set; }
 
-    // This is a time of day in minutes.  IE, 1410 is 11:30 PM (23.5 hours)
-    // Seems like this is redundant with scheduled_charging_start_time_minutes.
-    [JsonProperty(PropertyName = "scheduled_charging_start_time_app")]
-    public int? ScheduledChargingStartTimeApp { get; set; }
+        // This is a time of day in minutes.  IE, 660 is 11:00 AM
+        // Seems like this is redundant with scheduled_charging_start_time_minutes.
+        [JsonProperty(PropertyName = "scheduled_departure_time_minutes")]
+        public int? ScheduledDepartureTimeMinutes { get; set; }
 
-    // This is a time of day in minutes.  IE, 1410 is 11:20 PM (23.5 hours)
-    [JsonProperty(PropertyName = "scheduled_charging_start_time_minutes")]
-    public int? ScheduledChargingStartTimeMinutes { get; set; }
+        // This is a time of day in minutes.  IE, 1410 is 11:30 PM (23.5 hours)
+        // Seems like this is redundant with scheduled_charging_start_time_minutes.
+        [JsonProperty(PropertyName = "scheduled_charging_start_time_app")]
+        public int? ScheduledChargingStartTimeApp { get; set; }
 
-    [JsonProperty(PropertyName = "scheduled_charging_mode")]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public ScheduledChargingMode ScheduledChargingMode { get; set; }
+        // This is a time of day in minutes.  IE, 1410 is 11:20 PM (23.5 hours)
+        [JsonProperty(PropertyName = "scheduled_charging_start_time_minutes")]
+        public int? ScheduledChargingStartTimeMinutes { get; set; }
 
+        [Obsolete("Please use TeslaScheduledChargingMode instead.")]
+        public ScheduledChargingMode ScheduledChargingMode { 
+            get { return (ScheduledChargingMode)TeslaScheduledChargingMode; }
+            set { TeslaScheduledChargingMode = (TeslaScheduledChargingMode)value; }
+        }
 
-    // Hours
-    [JsonProperty(PropertyName = "time_to_full_charge")]
-    public double? TimeUntilFullCharge { get; set; }
+        [JsonProperty(PropertyName = "scheduled_charging_mode")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public TeslaScheduledChargingMode TeslaScheduledChargingMode { get; set; }
+        
+        [JsonProperty(PropertyName = "time_to_full_charge")]
+        public double? TimeUntilFullCharge { get; set; }
 
-    [JsonProperty(PropertyName = "minutes_to_full_charge")]
-    public int MinutesUntilFullCharge { get; set; }
+        [JsonProperty(PropertyName = "minutes_to_full_charge")]
+        public int MinutesUntilFullCharge { get; set; }
 
-    [JsonProperty(PropertyName = "user_charge_enable_request")]
-    public bool? IsUserChargeEnableRequest { get; set; }
+        [JsonProperty(PropertyName = "user_charge_enable_request")]
+        public bool? IsUserChargeEnableRequest { get; set; }
 
-    // Updates to Tesla API's
-    // Updated at an unknown time
+        // Updates to Tesla API's
+        // Updated at an unknown time
 
-    [JsonProperty(PropertyName = "trip_charging")]
-    public bool? IsTripCharging { get; set; }
+        [JsonProperty(PropertyName = "trip_charging")]
+        public bool? IsTripCharging { get; set; }
 
-    [JsonProperty(PropertyName = "charger_phases")]
-    public int? ChargerPhases { get; set; }
+        [JsonProperty(PropertyName = "charger_phases")]
+        public int? ChargerPhases { get; set; }
 
-    [JsonProperty(PropertyName = "motorized_charge_port")]
-    public bool? IsMotorizedChargePort { get; set; }
+        [JsonProperty(PropertyName = "motorized_charge_port")]
+        public bool? IsMotorizedChargePort { get; set; }
 
-    // Seen values "\u003Cinvalid\u003E"
-    [JsonProperty(PropertyName = "fast_charger_type")]
-    public string FastChargerType { get; set; }
+        // Seen values "\u003Cinvalid\u003E"
+        [JsonProperty(PropertyName = "fast_charger_type")]
+        public string FastChargerType { get; set; }
 
-    [JsonProperty(PropertyName = "usable_battery_level")]
-    public int? UsableBatteryLevel { get; set; }
+        [JsonProperty(PropertyName = "usable_battery_level")]
+        public int? UsableBatteryLevel { get; set; }
 
-    [JsonProperty(PropertyName = "charge_energy_added")]
-    public double? ChargeEnergyAdded { get; set; }
+        [JsonProperty(PropertyName = "charge_energy_added")]
+        public double? ChargeEnergyAdded { get; set; }
 
-    [JsonProperty(PropertyName = "charge_miles_added_rated")]
-    public double? ChargeMilesAddedRated { get; set; }
+        [JsonProperty(PropertyName = "charge_miles_added_rated")]
+        public double? ChargeMilesAddedRated { get; set; }
 
-    [JsonProperty(PropertyName = "charge_miles_added_ideal")]
-    public double? ChargeMilesAddedIdeal { get; set; }
+        [JsonProperty(PropertyName = "charge_miles_added_ideal")]
+        public double? ChargeMilesAddedIdeal { get; set; }
 
-    [JsonProperty(PropertyName = "eu_vehicle")]
-    public bool IsEUVehicle { get; set; }
+        [JsonProperty(PropertyName = "eu_vehicle")]
+        public bool IsEUVehicle { get; set; }
 
-    // Updates to Tesla API's around December 2015:
-    // Updated firmware from v7.0 (2.7.56) to v7(2.9.12) Some new fields added:
+        // Updates to Tesla API's around December 2015:
+        // Updated firmware from v7.0 (2.7.56) to v7(2.9.12) Some new fields added:
 
-    [JsonProperty(PropertyName = "charge_port_latch")]
-    public string ChargePortLatch { get; set; }  // "Engaged"
+        [JsonProperty(PropertyName = "charge_port_latch")]
+        public string ChargePortLatch { get; set; }  // "Engaged"
 
-    [JsonProperty(PropertyName = "charge_current_request")]
-    public int? ChargeCurrentRequest { get; set; }  // amps
+        [JsonProperty(PropertyName = "charge_current_request")]
+        public int? ChargeCurrentRequest { get; set; }  // amps
 
-    [JsonProperty(PropertyName = "charge_current_request_max")]
-    public int? ChargeCurrentRequestMax { get; set; }  // amps
+        [JsonProperty(PropertyName = "charge_current_request_max")]
+        public int? ChargeCurrentRequestMax { get; set; }  // amps
 
-    [JsonProperty(PropertyName = "managed_charging_active")]
-    public bool? ManagedChargingActive { get; set; }
+        [JsonProperty(PropertyName = "managed_charging_active")]
+        public bool? ManagedChargingActive { get; set; }
 
-    [JsonProperty(PropertyName = "managed_charging_user_canceled")]
-    public bool? ManagedChargingUserCanceled { get; set; }
+        [JsonProperty(PropertyName = "managed_charging_user_canceled")]
+        public bool? ManagedChargingUserCanceled { get; set; }
 
-    [JsonProperty(PropertyName = "managed_charging_start_time")]
-    public DateTime? ManagedChargingStartTime { get; set; }
+        [JsonProperty(PropertyName = "managed_charging_start_time")]
+        public DateTime? ManagedChargingStartTime { get; set; }
 
-    // Updates as of January 2019
+        // Updates as of January 2019
 
-    [JsonProperty(PropertyName = "conn_charge_cable")]
-    public string ConnChargeCable { get; set; } // "<invalid>", "SAE"
+        [JsonProperty(PropertyName = "conn_charge_cable")]
+        public string ConnChargeCable { get; set; } // "<invalid>", "SAE"
 
-    [JsonProperty(PropertyName = "fast_charger_brand")]
-    public string FastChargerBrand { get; set; }  // "<invalid>"
+        [JsonProperty(PropertyName = "fast_charger_brand")]
+        public string FastChargerBrand { get; set; }  // "<invalid>"
 
-    [JsonProperty(PropertyName = "off_peak_charging_enabled")]
-    public bool OffPeakChargingEnabled { get; set; }
+        [JsonProperty(PropertyName = "off_peak_charging_enabled")]
+        public bool OffPeakChargingEnabled { get; set; }
 
-    [JsonProperty(PropertyName = "off_peak_charging_times")]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public WeekTimes OffPeakChargingTimes { get; set; }
+        [Obsolete("Please use TeslaOffPeakChargingTimes instead.")]
+        public WeekTimes OffPeakChargingTimes {
+            get { return (WeekTimes)TeslaOffPeakChargingTimes; }
+            set { TeslaOffPeakChargingTimes = (TeslaWeekTimes)value; }
+        }
 
-    // Time of day in minutes
-    [JsonProperty(PropertyName = "off_peak_hours_end_time")]
-    public int? OffPeakHoursEndTime { get; set; }
+        [JsonProperty(PropertyName = "off_peak_charging_times")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public TeslaWeekTimes TeslaOffPeakChargingTimes { get; set; }
 
-    [JsonProperty(PropertyName = "preconditioning_enabled")]
-    public bool PreconditioningEnabled { get; set; }
+        // Time of day in minutes
+        [JsonProperty(PropertyName = "off_peak_hours_end_time")]
+        public int? OffPeakHoursEndTime { get; set; }
 
-    [JsonProperty(PropertyName = "preconditioning_times")]
-    public WeekTimes PreconditioningTimes { get; set; }
-}
+        [JsonProperty(PropertyName = "preconditioning_enabled")]
+        public bool PreconditioningEnabled { get; set; }
+
+        [Obsolete("Please use TeslaPreconditioningTimes instead.")]
+        public WeekTimes PreconditioningTimes {
+            get { return (WeekTimes) TeslaPreconditioningTimes; }
+            set { TeslaPreconditioningTimes = (TeslaWeekTimes)value; }
+        }
+
+        [JsonProperty(PropertyName = "preconditioning_times")]
+        public TeslaWeekTimes TeslaPreconditioningTimes { get; set; }
+    }
 }

@@ -21,12 +21,17 @@ namespace TeslaLibTests
                 "\"charger_voltage\":null,\"charging_state\":\"Complete\",\"conn_charge_cable\":\"<invalid>\",\"est_battery_range\":null,\"fast_charger_brand\":\"<invalid>\"," +
                 "\"fast_charger_present\":null,\"fast_charger_type\":\"<invalid>\",\"ideal_battery_range\":null,\"managed_charging_active\":false,\"managed_charging_start_time\":null," +
                 "\"managed_charging_user_canceled\":false,\"max_range_charge_counter\":0,\"minutes_to_full_charge\":0,\"not_enough_power_to_heat\":null,\"scheduled_charging_pending\":false," +
-                "\"scheduled_charging_start_time\":null,\"time_to_full_charge\":0.0,\"timestamp\":1603190060833,\"trip_charging\":null,\"usable_battery_level\":null,\"user_charge_enable_request\":null}}";
+                "\"scheduled_charging_start_time\":null,\"time_to_full_charge\":0.0,\"timestamp\":1603190060833,\"trip_charging\":null,\"usable_battery_level\":null,\"user_charge_enable_request\":null," +
+                "\"scheduled_charging_mode\":\"DepartBy\",\"off_peak_charging_times\":\"weekdays\"}}";
 
             var json = JObject.Parse(jsonWithNulls)["response"];
             var data = JsonConvert.DeserializeObject<ChargeStateStatus>(json.ToString());
-            // If we got here, great.
+
+            Assert.AreEqual(TeslaChargingState.Complete, data.TeslaChargingState);
+            Assert.AreEqual(TeslaScheduledChargingMode.DepartBy, data.TeslaScheduledChargingMode);
+            Assert.AreEqual(TeslaWeekTimes.Weekdays, data.TeslaOffPeakChargingTimes);
         }
+
         [TestMethod]
         public void DeserializeNullInTeslaVehicle()
         {
@@ -35,6 +40,10 @@ namespace TeslaLibTests
             var json = JObject.Parse(jsonWithNull)["response"];
             var d = json.ToString();
             var data = JsonConvert.DeserializeObject<List<TeslaVehicle>>(d);
+
+            Assert.AreEqual(2, data.Count);
+            Assert.AreEqual("5YJ3E1EA1LF736733", data[0].Vin);
+            Assert.AreEqual("7SAYGDEE5NF445694", data[1].Vin);
         }
     }
 }
