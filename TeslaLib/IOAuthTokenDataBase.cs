@@ -10,15 +10,15 @@ namespace TeslaLib
         /// </summary>
         /// <param name="flexEmailAddress">Flexcharging email address</param>
         /// <param name="teslaEmailAddress">Tesla account email address</param>
-        /// <param name="token">Tesla OAuth token</param> 
-        Task AddOAuthTokenAsync(LoginToken token, string teslaEmailAddress , string flexEmailAddress);
+        /// <param name="loginToken">Tesla OAuth token</param> 
+        Task AddOAuthTokenAsync(LoginToken loginToken, string teslaEmailAddress , string flexEmailAddress);
 
         /// <summary>
         /// Update Tesla OAuth token into DB
         /// </summary>
         /// <param name="flexEmailAddress">Flexcharging email address</param>
         /// <param name="teslaEmailAddress">Tesla account email address</param>
-        /// <param name="token">Tesla OAuth token</param> 
-        Task UpdateOAuthTokenAsync(LoginToken token, string teslaEmailAddress, string flexEmailAddress);
+        /// <param name="loginToken">Tesla OAuth token</param> 
+        Task UpdateOAuthTokenAsync(LoginToken loginToken, string teslaEmailAddress, string flexEmailAddress);
     }
 }
