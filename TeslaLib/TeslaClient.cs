@@ -51,9 +51,12 @@ namespace TeslaLib
         /// <summary>
         /// Process-wide default IOAuthTokenStore.  This can be overridden for specific instances by setting the OAuthTokenStore property.
         /// </summary>
-        /// <see cref="OAuthTokenStore"/>
-        public static IOAuthTokenStore TokenStoreForThisProcess { get; set; }
+        /// <see cref="OAuthTokenStore"/> 
 
+        [Obsolete("Please use IOAuthTokenDataBase OAuthTokenStoreForThisProcess instead.")]
+        public static IOAuthTokenStore TokenStoreForThisProcess { get; set; } 
+        public static IOAuthTokenDataBase OAuthTokenStoreForThisProcess { get; set; }
+         
         // If we are within some time before our OAuth2 token expires, renew the token.  We used to use 2 weeks for comfort.
         // We used to get a refresh token that we strongly assumed was good for 45 days, just like the the access token.
         // Now the access token expires after 8 hours, and we don't know about the refresh token's lifetime.  Maybe it's 8 hours too?

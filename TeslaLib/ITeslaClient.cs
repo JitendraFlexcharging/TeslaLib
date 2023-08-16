@@ -1,4 +1,5 @@
 ﻿using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,9 @@ namespace TeslaLib
         string AccessToken { get; }
         RestClient Client { get; set; }
         string Email { get; }  
-        ITeslaAuthHelper TeslaAuthHelper { get; } 
+        ITeslaAuthHelper TeslaAuthHelper { get; }
+
+        [Obsolete("Please use IOAuthTokenDataBase OAuthTokenStoreDataBase instead.")]
         IOAuthTokenStore OAuthTokenStore { get; set; }
         string TeslaClientId { get; }
         string TeslaClientSecret { get; }
