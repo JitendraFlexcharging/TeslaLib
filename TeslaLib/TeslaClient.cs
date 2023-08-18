@@ -55,6 +55,7 @@ namespace TeslaLib
 
         [Obsolete("Please use IOAuthTokenDataBase OAuthTokenStoreForThisProcess instead.")]
         public static IOAuthTokenStore TokenStoreForThisProcess { get; set; } 
+        
         public static IOAuthTokenDataBase OAuthTokenStoreForThisProcess { get; set; }
          
         // If we are within some time before our OAuth2 token expires, renew the token.  We used to use 2 weeks for comfort.
@@ -118,7 +119,8 @@ namespace TeslaLib
 
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
-        public IOAuthTokenStore OAuthTokenStore { get; set; } 
+        public IOAuthTokenStore OAuthTokenStore { get; set; }  
+
         public IOAuthTokenDataBase OAuthTokenStoreDataBase { get; set; } 
         public async Task LoginUsingTokenStoreAsync(string password, string mfaCode = null, bool forceRefreshOlderThanToday = false)
         {
