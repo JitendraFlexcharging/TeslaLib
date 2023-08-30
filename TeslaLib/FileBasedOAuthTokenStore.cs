@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.IO; 
 using System.Text;
 using System.Threading.Tasks;
 using TeslaLib.Converters;
@@ -12,7 +12,7 @@ namespace TeslaLib
 {
     // Note: This is not a secure storage mechanism for access tokens nor refresh tokens.
     // Ideally this file would be encrypted.  Or, we store the contents in a secure storage mechanism, not a file on disk.
-    public class FileBasedOAuthTokenStore : IOAuthTokenStore
+    public class FileBasedOAuthTokenStore : IOAuthTokenDataBase
     {
         private const string CacheFileName = "TeslaLoginTokenCache.cache";
 
@@ -211,6 +211,32 @@ namespace TeslaLib
                 else
                     return Task.FromResult((IReadOnlyList<LoginToken>) new List<LoginToken>());
             }
+        } 
+        public Task AddOAuthTokenAsync(LoginToken loginToken, string teslaEmailAddress, string flexEmailAddress)
+        {
+            lock (CacheLock)
+            {
+                Tokens[teslaEmailAddress] = loginToken;
+               
+                if (OSSupportsTokenCache)
+                {
+                    WriteCacheFile();
+                }
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateOAuthTokenAsync(LoginToken loginToken, string teslaEmailAddress, string flexEmailAddress)
+        {
+            lock (CacheLock)
+            {
+                Tokens[teslaEmailAddress] = loginToken;
+                if (OSSupportsTokenCache)
+                {
+                    WriteCacheFile();
+                }
+            }
+            return Task.CompletedTask;
         }
     }
 }
