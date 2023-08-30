@@ -108,7 +108,9 @@ namespace TeslaLib
             {
                 Tokens.Remove(emailAddress);
                 if (OSSupportsTokenCache)
+                {
                     WriteCacheFile();
+                }
             }
             return Task.CompletedTask;
         }
