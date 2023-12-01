@@ -4,36 +4,32 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using TeslaLib.Models;
-using TeslaLib.Converters;
 using System.Security;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
 using System.Net;
 using System.Linq;
-using System.Text;
-using System.Security.Cryptography;
 using TeslaAuth;
 
 namespace TeslaLib
 {
-
     public class TeslaClient : ITeslaClient
     {
         public string Email { get; }
         public string TeslaClientId { get; }
         public string TeslaClientSecret { get; }
-        public string AccessToken { get; private set; }
-        // For refresh token.
+        public string AccessToken { get; private set; } 
+
         private LoginToken _token;
-        public RestClient Client { get; set; }
+        public RestClient Client { get; set; } 
+        public string FlexChargingEmailAddress { get; set; }
         public ITeslaAuthHelper TeslaAuthHelper { get; private set; }
 
         // The user agent string works with a '.' in the name, but requests hang without the '.'!  The format for user agent
         // strings seems to be "product/version lots of other stuff".  Chrome uses this for its user agent string:
         // Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
-        public static readonly String FlexChargingUserAgent = "FlexCharging/1.0";
-
+        public static readonly String FlexChargingUserAgent = "FlexCharging/1.0"; 
         public const string LoginUrl = "https://owner-api.teslamotors.com/oauth/";
         public const string BaseUrl = "https://owner-api.teslamotors.com/api/1/";
         public const string StreamingUrl = "wss://streaming.vn.teslamotors.com/streaming/";
@@ -42,10 +38,8 @@ namespace TeslaLib
         // Read documentation here:  https://tesla-api.timdorr.com/api-basics/authentication
         public const string OAuthAuthorizeUrlMFA = "https://auth.tesla.com/oauth2/v3/authorize";
         public const string OAuthBaseUrl = "https://auth.tesla.com/oauth2/v3";   // add "token" to the end
-        public const string TeslaRedirectUrl = "https://auth.tesla.com/void/callback";  // Not what we want, but...
-
-        public const string Version = "1.1.0";
-
+        public const string TeslaRedirectUrl = "https://auth.tesla.com/void/callback";  // Not what we want, but... 
+        public const string Version = "1.1.0"; 
         public static TextWriter Logger = TextWriter.Null;
 
         /// <summary>
@@ -54,8 +48,7 @@ namespace TeslaLib
         /// <see cref="OAuthTokenStore"/> 
 
         [Obsolete("Please use IOAuthTokenDataBase OAuthTokenStoreForThisProcess instead.")]
-        public static IOAuthTokenStore TokenStoreForThisProcess { get; set; } 
-        
+        public static IOAuthTokenStore TokenStoreForThisProcess { get; set; }  
         public static IOAuthTokenDataBase OAuthTokenStoreForThisProcess { get; set; }
          
         // If we are within some time before our OAuth2 token expires, renew the token.  We used to use 2 weeks for comfort.
@@ -65,7 +58,6 @@ namespace TeslaLib
         // 10.5 hours.  Is it good for 45 days?  For forever until revoked by a password change?  Unknown.
         // Based on our usage, refreshing this every 4.5 hours is probably best.
         private static readonly TimeSpan TokenExpirationRenewalWindow = TimeSpan.FromHours(4.5);
-
         internal const String InternalServerErrorMessage = "<title>We're sorry, but something went wrong (500)</title>";
         internal const String ThrottlingMessage = "You have been temporarily blocked for making too many requests!";
         internal const String RetryLaterMessage = "Retry later";
@@ -86,7 +78,7 @@ namespace TeslaLib
         </HTML>
         */
 
-        public TeslaClient(string email, string teslaClientId, string teslaClientSecret, TeslaAccountRegion region = TeslaAccountRegion.Unknown)
+        public TeslaClient(string email, string teslaClientId, string teslaClientSecret, TeslaAccountRegion region, ITeslaAuthHelper authHelper, IOAuthTokenDataBase oAuthTokenDataBase, string flexChargingEmailAddress)
         {
             Email = email;
 
@@ -98,25 +90,10 @@ namespace TeslaLib
 
             Client.Authenticator = new TeslaAuthenticator();
 
-            OAuthTokenStoreDataBase = OAuthTokenStoreForThisProcess;
+            OAuthTokenStoreDataBase = oAuthTokenDataBase;
 
-            TeslaAuthHelper = new TeslaAuthHelper(FlexChargingUserAgent, region);
-        }
+            FlexChargingEmailAddress = flexChargingEmailAddress;
 
-        public TeslaClient(string email, string teslaClientId, string teslaClientSecret, TeslaAccountRegion region, ITeslaAuthHelper authHelper, IOAuthTokenDataBase oAuthTokenDataBase = null)
-        {
-            Email = email;
-
-            TeslaClientId = teslaClientId;
-
-            TeslaClientSecret = teslaClientSecret;
-
-            Client = new RestClient(BaseUrl);
-
-            Client.Authenticator = new TeslaAuthenticator();
-
-            OAuthTokenStoreDataBase = oAuthTokenDataBase ?? OAuthTokenStoreForThisProcess;
-             
             TeslaAuthHelper = authHelper ?? new TeslaAuthHelper(FlexChargingUserAgent, region);
         }
 
@@ -129,17 +106,22 @@ namespace TeslaLib
             {
                 throw new ArgumentException(nameof(Email));
             }
+            if (string.IsNullOrWhiteSpace(FlexChargingEmailAddress))
+            {
+                throw new ArgumentException(nameof(FlexChargingEmailAddress));
+            }
             if (OAuthTokenStoreDataBase == null)
             {
                 throw new InvalidOperationException("No Tesla token store set up");
-            }
+            } 
 
-            var token = await OAuthTokenStoreDataBase.GetTokenAsync(Email);
+            var token = await OAuthTokenStoreDataBase.GetTokenAsync(Email,FlexChargingEmailAddress);
 
             if (token == null)
             {
                 throw new SecurityException("Could not load any token for Tesla account " + Email);
             }
+
             // Check expiration.  If we're within a short time of expiration, refresh it.
             // If the access token expired, we might still be able to use the refresh token.  We don't know how long
             // though.  In March 2022 Tesla shrunk the lifetime of access tokens from 45 days to 8 hours, but refresh tokens
@@ -159,20 +141,16 @@ namespace TeslaLib
                 }
                 catch (Exception e)
                 {
-                    Object serializedResponse = e.Data["SerializedResponse"];
-
+                    Object serializedResponse = e.Data["SerializedResponse"]; 
                     String errMsg = String.Format("TeslaLib LoginUsingTokenStoreAsync couldn't refresh a login token while logging in for account {5}.  Will try to log in again.  Token created at: {0}  Expires: {1}  {2}: {3}{4}",
                     token.CreatedUtc, token.ExpiresUtc, e.GetType().Name, e.Message, serializedResponse == null ? String.Empty : "  Serialized response: " + serializedResponse, Email);
-
                     Logger.WriteLine(errMsg);
                 }
 
                 if (newToken != null)
                 {
-                    await OAuthTokenStoreDataBase.UpdateTokenAsync(Email, newToken);
-
-                    await OAuthTokenStoreDataBase.DeleteSpecificTokenAsync(Email, token);
-
+                    await OAuthTokenStoreDataBase.UpdateOAuthTokenAsync(newToken,Email,FlexChargingEmailAddress);
+                      
                     token = newToken;
                 }
             }
@@ -207,13 +185,13 @@ namespace TeslaLib
             
             if (OAuthTokenStoreDataBase != null)
             {
-                token = await OAuthTokenStoreDataBase.GetTokenAsync(Email);
+                token = await OAuthTokenStoreDataBase.GetTokenAsync(Email, FlexChargingEmailAddress);
             }
 
             if (token != null)
             {
-                // Check expiration.  If we're within a few days of expiration, refresh it.
                 TimeSpan expirationTimeFromNow = token.ExpiresUtc - DateTime.UtcNow;
+
                 if (expirationTimeFromNow.TotalSeconds < 0)
                 {
                     // If it expired, we need a new token.  Not clear whether the refresh token will work.
@@ -224,7 +202,9 @@ namespace TeslaLib
                     if (newToken == null)
                     {
                         Logger.WriteLine("TeslaLib had an expired login token, tried refreshing it, and failed for account {0}", Email);
-                        await OAuthTokenStoreDataBase.DeleteTokenAsync(Email);
+             
+                        await OAuthTokenStoreDataBase.DeleteTokenAsync(Email, FlexChargingEmailAddress);
+                        
                         token = null;
                     }
                 }
@@ -245,7 +225,7 @@ namespace TeslaLib
                         }
                         else
                         {
-                            await OAuthTokenStoreDataBase.UpdateTokenAsync(Email, newToken);
+                            await OAuthTokenStoreDataBase.UpdateOAuthTokenAsync(newToken, Email, FlexChargingEmailAddress);
                            
                             token = newToken;
                         }
@@ -371,7 +351,7 @@ namespace TeslaLib
 
             if (OAuthTokenStoreDataBase != null)
             {
-                await OAuthTokenStoreDataBase.UpdateTokenAsync(Email, newToken);
+                await OAuthTokenStoreDataBase.UpdateOAuthTokenAsync(newToken, Email, FlexChargingEmailAddress);
             }
             return true;
         }
@@ -422,8 +402,7 @@ namespace TeslaLib
             }
 
             return data;
-        }
-
+        } 
         public async Task<List<TeslaVehicle>> LoadVehiclesAsync(CancellationToken cancellationToken)
         {
             if (!IsLoggedIn())

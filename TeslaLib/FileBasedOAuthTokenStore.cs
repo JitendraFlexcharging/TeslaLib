@@ -2,10 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO; 
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
-using TeslaLib.Converters;
 using TeslaLib.Models;
 
 namespace TeslaLib
@@ -15,8 +13,7 @@ namespace TeslaLib
     public class FileBasedOAuthTokenStore : IOAuthTokenDataBase
     {
         private const string CacheFileName = "TeslaLoginTokenCache.cache";
-
-        //private static readonly TimeSpan ExpirationTimeWindow = TimeSpan.FromDays(1);
+         
         private static readonly Dictionary<string, LoginToken> Tokens = new Dictionary<string, LoginToken>();
         private static readonly object CacheLock = new object();
         private static volatile bool _haveReadCacheFile;
@@ -237,6 +234,14 @@ namespace TeslaLib
                 }
             }
             return Task.CompletedTask;
+        } 
+        public Task<LoginToken> GetTokenAsync(string teslaEmailAddress, string flexEmailAddress)
+        {
+            throw new NotImplementedException();
+        } 
+        public Task<bool> DeleteTokenAsync(string teslaEmailAddress, string flexEmailAddress)
+        {
+            throw new NotImplementedException();
         }
     }
 }

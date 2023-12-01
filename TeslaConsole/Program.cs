@@ -17,12 +17,12 @@ namespace TeslaConsole
             string clientSecret = TESLA_CLIENT_SECRET;
 
             string email = "";
+            string password = ""; 
+            string flexEmailAddress = "";
 
-            string password = "";
+            TeslaClient.OAuthTokenStoreForThisProcess = new FileBasedTeslaOAuthTokenDataBase();
 
-            TeslaClient.TokenStoreForThisProcess = new FileBasedOAuthTokenStore();
-
-            TeslaClient client = new TeslaClient(email, clientId, clientSecret);
+            TeslaClient client = new TeslaClient(email, clientId, clientSecret,TeslaAuth.TeslaAccountRegion.USA,null,TeslaClient.OAuthTokenStoreForThisProcess,flexEmailAddress);
 
             // If we have logged in previously with the same email address, then we can use this method and refresh tokens,
             // assuming the refresh token hasn't expired.

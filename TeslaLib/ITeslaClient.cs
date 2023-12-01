@@ -12,8 +12,9 @@ namespace TeslaLib
     {
         string AccessToken { get; }
         RestClient Client { get; set; }
-        string Email { get; }  
+        string Email { get; }
         ITeslaAuthHelper TeslaAuthHelper { get; }
+        string FlexChargingEmailAddress { get; set; }
 
         [Obsolete("Please use IOAuthTokenDataBase OAuthTokenStoreDataBase instead.")]
         IOAuthTokenStore OAuthTokenStore { get; set; }
